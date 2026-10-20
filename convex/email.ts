@@ -4,6 +4,7 @@ import { SESv2Client, SESv2ServiceException, SendEmailCommand } from '@aws-sdk/c
 import { v } from 'convex/values';
 import { internalAction } from './_generated/server';
 import { internal } from './_generated/api';
+import { buildAvailabilityEmail } from './emailTemplate';
 
 type EmailResult =
   | { status: 'submitted'; messageId: string }
@@ -28,14 +29,16 @@ export const send = internalAction({
       try {
         const listsUrl = new URL(env.SITE_URL);
         listsUrl.hash = 'view=lists';
-        const checkedAt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', dateStyle: 'medium', timeStyle: 'short' }).format(message.checkedAt);
-        const body = `${message.title} is available at ${message.branchName}.\n\nChecked ${checkedAt} Central. Availability can change.\n\nView the library catalog:\n${message.catalogUrl}\n\nManage your alerts or turn off email notifications:\n${listsUrl.href}\n\nShelf`;
+        const body = buildAvailabilityEmail({ ...message, listsUrl: listsUrl.href });
         const response = await client.send(new SendEmailCommand({
           FromEmailAddress: env.SES_FROM_EMAIL,
           Destination: { ToAddresses: [message.recipient] },
           Content: { Simple: {
             Subject: { Data: `Available: ${message.title.slice(0, 160)}`, Charset: 'UTF-8' },
-            Body: { Text: { Data: body, Charset: 'UTF-8' } },
+            Body: {
+              Text: { Data: body.text, Charset: 'UTF-8' },
+              Html: { Data: body.html, Charset: 'UTF-8' },
+            },
           } },
         }), { abortSignal: controller.signal });
         result = response.MessageId ? { status: 'submitted', messageId: response.MessageId } : { status: 'uncertain', errorCode: 'missing-provider-message-id' };
