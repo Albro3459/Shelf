@@ -236,7 +236,7 @@ export function App() {
         <div className="examples"><span>Try a search</span>{examples.map(example => <button key={example.label} onClick={() => void search(example.query)}>{example.label}<span aria-hidden="true">↗</span></button>)}</div>
       </section>
 
-      {!hasWorkspace && <section className="welcome-note" aria-label="How it works"><div className="note-symbol"><BookIcon/></div><div><h2>The whole parish, one search.</h2><p>Explore physical books, choose a title, and check availability at every EBRPL branch.</p></div><span className="note-number" aria-hidden="true">BATON ROUGE, LA</span></section>}
+      {!hasWorkspace && <section className="welcome-note" aria-label="How it works"><div className="note-symbol"><BookIcon/></div><div><p>Explore physical books, choose a title, and check availability at every EBRPL branch.</p></div><span className="note-number" aria-hidden="true">BATON ROUGE, LA</span></section>}
 
       {hasWorkspace && <section className={`workspace${!hasSearched ? ' direct-record' : ''}`} aria-label="Books and branch availability">
         {hasSearched && <div className="results-panel" aria-busy={isSearching}>
