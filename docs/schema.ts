@@ -79,7 +79,6 @@ export type ShelfSubscriptionDoc = {
   bookId: ShelfId<'books'>;
   branchId: ShelfId<'branches'>;
   isEnabled: boolean;
-  emailEnabled: boolean;
   updatedAt: number;
 };
 

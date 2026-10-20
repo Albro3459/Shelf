@@ -51,7 +51,7 @@ Use Convex Auth with Google sign-in. Its `users._id`, returned by `getAuthUserId
 
 A user can own multiple named lists. Each list contains a given book once. Books are shared across users, while lists and alert choices are private. Saving a book does not enable an alert by itself. Removing a list entry does not disable an independently selected subscription.
 
-Each subscription selects one user, book, and branch, with email as the initial channel. Enforce one subscription per user/book/branch even when the book appears in several lists. Disable subscriptions in place so re-enabling one can reuse its notification history. A standalone library is one system with one branch.
+Each subscription selects one user, book, and branch. Email is the only initial channel, so subscription `isEnabled` controls its alerts and the user's `emailNotificationsEnabled` is the account-wide switch. Enforce one subscription per user/book/branch even when the book appears in several lists. Disable subscriptions in place so re-enabling one can reuse its notification history. A standalone library is one system with one branch.
 
 The browser calls Convex functions through the SDK. Backend functions enforce ownership using the authenticated user. Validate list ownership through its parent list, and never trust a caller-supplied owner ID. Notification recipients must have active access, a verified account-owned email, and enabled account and subscription preferences.
 
@@ -77,13 +77,15 @@ The existing catalog client still contains URL constants. Replacing those consta
 
 ## Observations and available periods
 
-Poll each distinct catalog record once and share its observations across subscribers. Record attempts and sanitized errors separately from successful observations. Unknown, missing, and failed responses do not establish unavailability. Preserve the last known state through errors and reject stale check results.
+Schedule checks every 30 minutes from 8 AM through 5 PM daily in `America/Chicago`, respecting daylight saving time. Scheduler implementation is deferred. Poll each distinct catalog record once and share its observations across subscribers. Record attempts and sanitized errors separately from successful observations. Unknown, missing, and failed responses do not establish unavailability. Preserve the last known state through errors and reject stale check results.
 
 Aggregate all confirmed physical records for each book/branch pair:
 
 - Any confirmed available record makes the book available at that branch
-- All matching records must confirm unavailability before declaring it unavailable
+- With at least one matching record, all must be confirmed unavailable or explicitly `not-held` before declaring the book unavailable
 - Otherwise the result is unknown
+
+Zero matching records yields unknown. `not-held` requires explicit confirmation from the catalog that the record is not held at that branch. Missing holdings remain unknown. The current parser reserves `not-held` and does not emit it yet.
 
 Create an `availabilityEvents` document when availability is first confirmed with no open event. Its ID identifies that available period. Leave it open through unchanged availability and unknown results. Set `endedAt` only after confirmed unavailability. If availability returns later, create a new event. Check the latest event and open or close it in the same mutation so concurrent checks cannot create duplicate periods. Aggregate a coherent check batch before updating periods so partial or stale results cannot manufacture transitions.
 
@@ -103,16 +105,23 @@ Reconcile eligible subscribers after checks and when subscriptions or email pref
 | A check fails, then availability recovers unchanged | Keep the period, no repeat |
 | Confirmed unavailable, then available again | Open a new period and notify eligible Alice and Bob again |
 
-Before sending, recheck account access, email verification, preferences, subscription state, and whether the period is still current. Cancel obsolete jobs. Re-enabling a subscription reuses the notification for that period, including its previous attempt result. A cancelled row with no attempts may be queued again if it becomes eligible.
+Before sending, recheck account access, email verification, preferences, subscription state, and whether the period is still current. Re-enabling a subscription reuses the notification for that period and preserves its attempt count and outcome.
+
+- An unattempted `pending` row becomes `cancelled` when no longer eligible. It may return to `pending` if eligible again during the same period
+- An attempted `failed` row stays `failed`. Disabling alerts clears `nextAttemptAt`, pausing retries without erasing the rejection. Re-enabling can set a new retry time if the period is still current, the rejection is safely retryable, and the retry budget remains
+- A `sending` row keeps its in-flight state and records the eventual result. Disabling alerts prevents new attempts but cannot recall an email request already in flight
+- `submitted` and `uncertain` rows retain their outcomes and are never automatically requeued for the same period
+
+For example, definite rejection → retry scheduled on the failed row → alerts disabled → alerts re-enabled resumes only a safe retry with remaining budget. Classify retry eligibility from stable, sanitized `lastErrorCode` values. Unknown outcomes are `uncertain`, never a retryable rejection. Closed periods cannot produce further attempts, regardless of the notification's status.
 
 | Status | Meaning |
 | --- | --- |
-| `pending` | Queued, including a scheduled retry |
+| `pending` | Queued with no previous attempt |
 | `sending` | A worker claimed the row and recorded a new attempt before contacting the provider |
 | `submitted` | The provider accepted the email request |
-| `failed` | A known failure, with a bounded retry only when safe |
+| `failed` | A known rejection, with `nextAttemptAt` only when a safe bounded retry is scheduled |
 | `uncertain` | The request may have been accepted, including a worker lost during sending |
-| `cancelled` | No further attempt is eligible |
+| `cancelled` | An unattempted row that is no longer eligible |
 
 Claim work transactionally, increment `attemptCount`, and set `lastAttemptAt` and a lease. Guard worker updates with the claimed attempt number so an older attempt cannot overwrite a newer result. A lost sending lease becomes uncertain. Do not automatically retry ambiguous outcomes. This tracks attempts and provider acceptance, without inbox delivery tracking or an exactly-once email guarantee.
 
