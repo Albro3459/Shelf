@@ -61,9 +61,30 @@ Use `npm run convex -- dev --once --typecheck enable` to sync to cloud developme
 - `catalog.getBranches({})`: the dynamic branch directory
 - `catalog.checkAvailability({ recordId })`: internal availability check for backend and CLI use
 
-The frontend uses Convex's generated API and React client. `src/service.ts` handles input validation, physical filtering, and all-branch availability for the public and internal actions. Expected input and record errors return useful messages; upstream failures return a generic message. The POC has no accounts, saved lists, or notification jobs yet. Future storage will connect users to their book lists, chosen branches, notification preferences, and observations/delivery state. Scheduled monitoring will call internal functions using this same catalog code.
+The frontend uses Convex's generated API and React client. `src/service.ts` handles input validation, physical filtering, and all-branch availability for the public and internal actions. Expected input and record errors return useful messages; upstream failures return a generic message. Google sign-in creates a Convex Auth account. Saved lists and notification jobs are planned. Scheduled monitoring will call internal functions using this same catalog code.
 
 Only exact HTTPS `catalog.ebrpl.com/iguana/www.main.cls` record URLs are accepted. The backend extracts the record ID and never fetches a user-supplied URL. Bare 10- and 13-digit inputs are searched as ISBNs. Use the `1.` prefix to disambiguate a numeric catalog ID of those lengths.
+
+## Google sign-in
+
+Create a Web application OAuth client in Google Cloud. Add the frontend origin and the selected backend's HTTP Actions URL followed by `/api/auth/callback/google` as an authorized redirect URI. Cloud HTTP Actions URLs end in `.convex.site`. A local backend normally uses `http://127.0.0.1:3211`; register its exact callback separately if using local auth.
+
+Copy `.env.convex.example` to the ignored `.env.convex` and fill in the Google credentials. Select the target deployment, then configure its backend environment and auth routes:
+
+```sh
+npm run convex -- env set --from-file .env.convex
+npm run auth:setup -- --web-server-url http://localhost:5173
+npm run convex -- dev --once --typecheck enable
+npm run dev:web
+```
+
+The auth initializer creates `JWT_PRIVATE_KEY` and `JWKS` on the selected backend and preserves existing keys unless you choose to replace them. Keep a local backend running in another terminal when configuring it. Each deployment needs its own environment configuration.
+
+Open `http://localhost:5173` for this configuration. `SITE_URL` must match the frontend address used for sign-in. Set it to the final HTTPS frontend URL when deploying. Sign-in preserves the current path and book hash, and Convex Auth exchanges and removes the callback's query code. Google credentials and signing keys stay on the backend.
+
+Catalog search remains public. `users.current` returns only the authenticated user's basic profile, using Convex Auth's canonical `users._id`. New accounts have pending access and notifications disabled. Repeat sign-ins preserve access and preferences. List and notification features will require active access when implemented. See the [data model](docs/data-model.md).
+
+Setup follows the [Convex Auth guide](https://labs.convex.dev/auth/setup) and [Google provider configuration](https://labs.convex.dev/auth/config/oauth/google).
 
 ## Catalog CLI and client
 
@@ -107,4 +128,4 @@ npm test
 
 The core and Convex typechecks exclude Node ambient types. Separate configurations check the frontend, existing tests, and Vite setup. Existing tests use recorded, sanitized XML and mocked HTTP responses for catalog parsing, input resolution, directory discovery, physical pagination, and all-branch joins. See [fixture notes](test/fixtures/README.md) for the observed protocol and its limits.
 
-Frontend hosting, database/auth integration, scheduled checks, and email notifications remain future work.
+Frontend hosting, saved lists, scheduled checks, and email notifications remain future work.

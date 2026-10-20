@@ -33,6 +33,12 @@ button { border: 0; }
 .library-name { display: grid; grid-template-columns: auto 1fr; gap: 0 10px; font-size: 12px; font-weight: 600; line-height: 1.5; letter-spacing: .2px; }
 .library-mark { grid-row: span 2; width: 1px; background: #b9bfb2; margin: 3px 6px 3px 0; }
 .library-name-second { font-weight: 400; color: var(--muted); }
+.header-actions { display: flex; align-items: center; gap: 28px; }
+.account-controls { display: flex; align-items: center; gap: 12px; position: relative; }
+.account-name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.account-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 42px; padding: 10px 14px; border: 1px solid #b8c1b5; background: #fffef9; font-size: 12px; white-space: nowrap; }
+.account-button:hover:not(:disabled) { border-color: var(--forest); background: #edf0e5; }
+.account-error { position: absolute; top: calc(100% + 8px); right: 0; width: 245px; z-index: 1; padding: 12px; border: 1px solid #d2b7a4; background: #fff8ed; color: #8d432d; font-size: 12px; line-height: 1.5; }
 .hero { padding: 74px 0 52px; max-width: 940px; }
 .eyebrow { display: inline-flex; align-items: center; gap: 9px; font-size: 10px; font-weight: 650; letter-spacing: 1.9px; line-height: 1.6; }
 .hero > .eyebrow { color: #697266; }
@@ -121,7 +127,7 @@ h1 em { color: var(--orange); font-weight: 400; }
 .branch-copy strong { font-size: 12px; line-height: 1.6; font-weight: 500; overflow-wrap: anywhere; }
 .branch-copy > span { color: #858775; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
 .branch-status { display: flex; align-items: center; gap: 5px; font-size: 11px; white-space: nowrap; color: #7e8074; line-height: 1.8; margin-top: 1px; }
-.branch-status > span { display: inline-grid; place-items: center; width: 12px; height: 12px; border: 1px solid #dedfd4; border-radius: 50%; font-size: 9px; }
+.branch-status > span { display: inline-grid; place-items: center; flex-shrink: 0; width: 12px; height: 12px; border: 1px solid #dedfd4; border-radius: 50%; line-height: 0; }
 .branch-status.available { color: #416b37; }
 .branch-status.available > span { background: #e9f0df; border-color: #e9f0df; }
 .branch-status.unavailable { color: #976a47; }
@@ -172,11 +178,12 @@ h1 em { color: var(--orange); font-weight: 400; }
   .book-result-copy > strong { font-size: 19px; }
   .branch-row { gap: 8px; }
   .branch-status { white-space: normal; max-width: 115px; flex-shrink: 0; }
-  .branch-status > span { flex-shrink: 0; }
 }
 @media (max-width: 800px) {
   .app-shell { padding: 0 26px; }
   .site-header { height: 89px; }
+  .header-actions > .library-name { display: none; }
+  .account-name { max-width: 130px; }
   .hero { padding-top: 55px; }
   .workspace { grid-template-columns: minmax(0, 1fr); gap: 30px; }
   .hero.compact { padding-top: 35px; }
@@ -196,6 +203,9 @@ h1 em { color: var(--orange); font-weight: 400; }
 @media (max-width: 480px) {
   .app-shell { padding: 0 20px; }
   .site-header { height: 84px; }
+  .account-controls { gap: 8px; }
+  .account-name { display: none; }
+  .account-button { padding: 9px 10px; font-size: 11px; gap: 8px; }
   .brand { font-size: 31px; gap: 9px; }
   .brand-icon { width: 38px; height: 38px; }
   .library-name { font-size: 9px; gap: 0 6px; }

@@ -9,6 +9,7 @@
   "exports": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
+    "auth:setup": "auth",
     "convex": "convex",
     "catalog": "tsx src/cli.ts",
     "dev": "convex dev --typecheck enable --start \"npm run dev:web\"",
@@ -19,6 +20,8 @@
     "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
+    "@auth/core": "^0.41.3",
+    "@convex-dev/auth": "^0.0.96",
     "@rgrove/parse-xml": "^5.0.0",
     "convex": "^1.47.0",
     "react": "^19.3.1",

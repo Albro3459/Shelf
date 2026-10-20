@@ -5,6 +5,7 @@ import { ConvexError } from 'convex/values';
 import { api } from '../../convex/_generated/api';
 import type { AvailabilityResponse } from '../../src/api-model';
 import type { AvailabilityStatus, Book, BranchObservation } from '../../src/model';
+import { AccountControls } from './AccountControls';
 
 const examples = [
   { label: 'Fruit fly', query: 'Fruit fly' },
@@ -45,11 +46,15 @@ function cleanStatus(value: string): string {
   return value.replace(/<[^>]*>/g, '').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').trim();
 }
 
+function StatusIcon({ status }: { status: AvailabilityStatus }) {
+  return <span aria-hidden="true"><svg width="8" height="8" viewBox="0 0 12 12" fill="none">{status === 'available' ? <path d="m2 6 2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/> : status === 'unavailable' ? <path d="M3 6h6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/> : <circle cx="6" cy="6" r="1.25" fill="currentColor"/>}</svg></span>;
+}
+
 function BranchRow({ branch }: { branch: BranchObservation }) {
   const descriptions = [...new Set(branch.rawStatuses.map(cleanStatus).filter(Boolean))];
   const hasHoldings = branch.rawStatuses.length > 0 || branch.rawAvailableFlags.length > 0;
   const label = branch.status === 'unknown' && !hasHoldings ? 'No holdings reported' : statusLabels[branch.status];
-  return <li className="branch-row"><div className="branch-copy"><strong>{branch.branchName || branch.branchCode}</strong>{descriptions.length > 0 && <span>{descriptions.join(' · ')}</span>}</div><span className={`branch-status ${branch.status}`}><span aria-hidden="true">{branch.status === 'available' ? '✓' : branch.status === 'unavailable' ? '−' : '·'}</span>{label}</span></li>;
+  return <li className="branch-row"><div className="branch-copy"><strong>{branch.branchName || branch.branchCode}</strong>{descriptions.length > 0 && <span>{descriptions.join(' · ')}</span>}</div><span className={`branch-status ${branch.status}`}><StatusIcon status={branch.status}/>{label}</span></li>;
 }
 
 function recordFromLocation(): string | null {
@@ -207,7 +212,7 @@ export function App() {
   const checkedLabel = checkedDate && !Number.isNaN(checkedDate.getTime()) ? checkedDate.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : null;
 
   return <div className="app-shell">
-    <header className="site-header"><a className="brand" href={window.location.pathname} aria-label="Shelf home"><img className="brand-icon" src="/shelf.svg" width="45" height="45" alt=""/><span>Shelf<span className="brand-dot">.</span></span></a><div className="library-name"><span className="library-mark" aria-hidden="true"/>East Baton Rouge<span className="library-name-second">Parish Library</span></div></header>
+    <header className="site-header"><a className="brand" href={window.location.pathname} aria-label="Shelf home"><img className="brand-icon" src="/shelf.svg" width="45" height="45" alt=""/><span>Shelf<span className="brand-dot">.</span></span></a><div className="header-actions"><div className="library-name"><span className="library-mark" aria-hidden="true"/>East Baton Rouge<span className="library-name-second">Parish Library</span></div><AccountControls/></div></header>
     <main>
       <section className={`hero${hasWorkspace ? ' compact' : ''}`} aria-labelledby="page-title">
         <div className="eyebrow"><span/>YOUR NEXT READ, NEARBY</div>

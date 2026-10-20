@@ -1,4 +1,4 @@
-// Schema scaffold only; runtime validators and auth configuration are not deployed
+// Domain schema scaffold; auth and users are implemented in convex/schema.ts
 // Convex supplies _id and _creationTime; timestamps below are Unix milliseconds
 
 import type { GenericId } from 'convex/values';

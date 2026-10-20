@@ -1,6 +1,6 @@
 # Shelf data model
 
-The [TypeScript scaffold](schema.ts) documents the agreed document shapes. It is included in the project typecheck, but does not create tables, configure auth, or change catalog behavior. When implemented, `convex/schema.ts` will define runtime validators and indexes. Application code will use its generated `Doc` and `Id` types.
+The [TypeScript scaffold](schema.ts) documents the agreed document shapes and is included in the project typecheck. `convex/schema.ts` currently implements Convex Auth's managed tables and the extended `users` table. The remaining domain tables and indexes are planned. Application code uses the runtime schema's generated `Doc` and `Id` types.
 
 Every document gets a generated Convex `_id` and `_creationTime`. Other timestamps are Unix milliseconds. ISBNs, provider account IDs, and library record IDs are external identifiers.
 
@@ -48,6 +48,8 @@ Convex Auth also manages provider accounts, sessions, and its other required tab
 Use Convex Auth with Google sign-in. Its `users._id`, returned by `getAuthUserId(ctx)`, is the canonical Shelf user ID. Lists, subscriptions, and notifications reference that same ID.
 
 `ShelfUserDoc` includes selected profile fields and app additions. Preserve the complete managed auth schema when extending it. Missing or pending `accessStatus` denies private account features. Treat a missing email preference as disabled.
+
+Google sign-in requires a verified Google email. New users start with pending access and email notifications disabled. Repeat sign-ins preserve those fields. Pending users can sign in and view their own basic account identity, but future list and subscription functions must require active access. Disabled users cannot create new sessions or retrieve their account profile. There is no client-facing access approval function.
 
 A user can own multiple named lists. Each list contains a given book once. Books are shared across users, while lists and alert choices are private. Saving a book does not enable an alert by itself. Removing a list entry does not disable an independently selected subscription.
 
@@ -148,7 +150,7 @@ Retention must preserve open periods and the notification keys needed to prevent
 
 ## Deployment boundary
 
-The static React frontend will use GitHub Pages over HTTPS with hash routing. Convex will host auth, database access, catalog actions, schedules, and email actions. Configure Vite's base and asset URLs for the hosting path, build with the backend's public `VITE_CONVEX_URL`, and keep provider secrets on the backend. This scaffold does not configure hosting or authentication.
+The static React frontend will use GitHub Pages over HTTPS with hash routing. Convex hosts Google authentication and catalog actions. Database access beyond the auth tables, schedules, and email actions are planned. Configure Vite's base and asset URLs for the hosting path, build with the backend's public `VITE_CONVEX_URL`, and keep provider secrets on the backend. Hosting is not configured yet.
 
 ## Sources
 
