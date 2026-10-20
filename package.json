@@ -11,11 +11,9 @@
   "scripts": {
     "convex": "convex",
     "catalog": "tsx src/cli.ts",
-    "dev": "concurrently --kill-others -n api,web npm:dev:api npm:dev:web",
-    "dev:api": "tsx watch server/index.ts",
+    "dev": "convex dev --typecheck enable --start \"npm run dev:web\"",
     "dev:web": "vite",
-    "build": "npm run typecheck && tsc -p tsconfig.json && tsc -p tsconfig.server.json && vite build",
-    "start": "node dist/api/server/index.js",
+    "build": "npm run typecheck && tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.test.json && tsc -p tsconfig.core.json && tsc -p tsconfig.web.json && tsc -p tsconfig.tools.json && tsc -p convex/tsconfig.json",
     "test": "tsx --test test/*.test.ts"
@@ -31,7 +29,6 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "concurrently": "^10.0.6",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.4"

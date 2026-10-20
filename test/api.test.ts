@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createApiHandler } from '../server/handler.js';
 import { parseDirectory } from '../src/directory.js';
 import { InputError, resolveInput } from '../src/input.js';
 import type { Book, EbrplClient } from '../src/model.js';
-import { CatalogError, CatalogRecordError, createEbrplClient } from '../src/index.js';
+import { CatalogError, createEbrplClient } from '../src/index.js';
 import { createCatalogService } from '../src/service.js';
 
 const book: Book = {
@@ -103,27 +102,6 @@ test('availability requests every directory branch and preserves unknown missing
   assert.deepEqual(result.branches[1]?.rawStatuses, []);
 });
 
-test('HTTP validation rejects bad input before calls and hides upstream details', async () => {
-  let calls = 0;
-  const handler = createApiHandler(createCatalogService(client({ async searchBooks() {
-    calls += 1;
-    throw new CatalogError('<xml>secret session token</xml>');
-  } })));
-  for (const path of ['/api/search?q=', '/api/search?q=ok&limit=-1', '/api/search?q=ok&startRecord=1.2',
-    '/api/search?q=ok&q=other', '/api/search?q=https%3A%2F%2Fevil.test', '/api/availability/%ZZ', '/api/availability/1.0']) {
-    const response = await handler(new Request(`http://localhost${path}`));
-    assert.equal(response.status, 400, path);
-    assert.match(response.headers.get('content-type') ?? '', /application\/json/);
-  }
-  assert.equal(calls, 0);
-  const failure = await handler(new Request('http://localhost/api/search?q=hobbit'));
-  assert.equal(failure.status, 502);
-  assert.doesNotMatch(await failure.text(), /secret|token|xml/);
-  assert.equal((await handler(new Request('http://localhost/api/health'))).status, 200);
-  assert.equal((await handler(new Request('http://localhost/missing'))).status, 404);
-  assert.equal((await handler(new Request('http://localhost/api/search', { method: 'POST' }))).status, 405);
-});
-
 test('juvenile, teen, biography, graphic and large print book mappings remain physical', async () => {
   const record = readFileSync(new URL('./fixtures/record-hobbit.xml', import.meta.url), 'utf8');
   for (const code of ['FICJ', 'FICT', 'BIOJ', 'BOARDBK', 'PICTUREBK', 'GRAPHICBKJ', 'GRAPHICNFT', 'LARGPRINTT']) {
@@ -133,22 +111,4 @@ test('juvenile, teen, biography, graphic and large print book mappings remain ph
     const result = await catalog.getAvailability('1.611172', ['EBRPL/EBR']);
     assert.equal(result.book.isPhysicalBook, true, code);
   }
-});
-
-test('record errors retain useful statuses while directory failure cannot fall back to preferred branches', async () => {
-  for (const [reason, status] of [['not-found', 404], ['not-physical', 422]] as const) {
-    const handler = createApiHandler(createCatalogService(client({ async getAvailability() {
-      throw new CatalogRecordError('Safe record message', reason);
-    } })));
-    const response = await handler(new Request('http://localhost/api/availability/1.1906252'));
-    assert.equal(response.status, status);
-    assert.deepEqual(await response.json(), { error: 'Safe record message' });
-  }
-  let availabilityCalled = false;
-  const handler = createApiHandler(createCatalogService(client({
-    async getBranches() { throw new CatalogError('Broken directory'); },
-    async getAvailability() { availabilityCalled = true; throw new Error('Unexpected availability call'); },
-  })));
-  assert.equal((await handler(new Request('http://localhost/api/availability/1.1906252'))).status, 502);
-  assert.equal(availabilityCalled, false);
 });

@@ -6,4 +6,3 @@ export type SearchResponse =
   | { kind: 'record'; recordId: string };
 export type BranchDirectoryResponse = { branches: Branch[] };
 export type AvailabilityResponse = AvailabilityResult;
-export type ApiErrorResponse = { error: string };

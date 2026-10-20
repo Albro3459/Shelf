@@ -1,37 +1,36 @@
 # EBRPL book finder
 
-Search the East Baton Rouge Parish Library catalog and check physical books across its public branches. The POC includes a React frontend, a small Node API, and a reusable TypeScript catalog client. The catalog client uses ordinary `fetch`, explicit anonymous-session cookies, and a pure JavaScript XML parser. Node APIs stay in the server and local CLI.
+Search the East Baton Rouge Parish Library catalog and check physical books across its public branches. React calls a Convex backend that shares the reusable TypeScript catalog client with the local CLI. The catalog client uses ordinary `fetch`, explicit anonymous-session cookies, and a pure JavaScript XML parser.
 
 Use Node.js 24, pinned in `.node-version`, and TypeScript 7. React and Vite use the current stable releases installed in the lockfile.
 
 ```sh
 fnm use 24
 npm install
+npm run convex -- deployment create local --select
 npm run dev
 ```
 
-Open [the app](http://localhost:5173). The dev command runs Vite on port 5173 and the API on loopback port 5174. Vite proxies `/api` requests to the API, so catalog sessions stay on the server.
+Create the local deployment once. On subsequent runs, use `npm run dev`. It starts Convex, syncs the backend, then starts Vite on [port 5173](http://localhost:5173). The local backend normally listens on port 3210 and keeps its state in the ignored `.convex/` directory. The CLI writes the selected deployment and browser URL to the ignored `.env.local`; Vite reads this file from the repository root.
 
 Enter a title, author, ISBN, EBRPL record ID (`1.1906252` or `1906252`), or a complete HTTPS catalog record link. Search results show confirmed physical books. Selecting one checks all public physical branches returned by the catalog's live directory. Missing holdings stay unknown and are not treated as unavailable.
 
 The API filters one upstream catalog page at a time. A page containing only digital items can have no physical results and still have a next page. Load more to continue. Catalog totals include all formats.
 
-Build and run the compiled API with a preview of the static frontend:
+Build and preview the static frontend while your selected Convex backend is running:
 
 ```sh
 npm run build
-npm start
-# In another terminal
 npm run preview
 ```
 
-The preview serves [port 4173](http://localhost:4173) and proxies to the API on port 5174. The static frontend build is in `dist/web`, the compiled Node entry is `dist/api/server/index.js`, and the catalog library keeps its `dist/index.js` export. `PORT` can change the API listener, but update the proxy target in `vite.config.ts` if doing so locally. Neither dev nor preview is a public deployment.
+The preview serves [port 4173](http://localhost:4173). The static frontend build is in `dist/web`, and the catalog library keeps its `dist/index.js` export. `VITE_CONVEX_URL` selects the frontend's backend at build time. Keep `npm run convex -- dev` running in another terminal when previewing against a local backend. For cloud frontend builds, select the intended cloud backend or set its URL before building.
 
 ## Convex development
 
-Cloud catalog access was verified on a development deployment with the existing client in Convex's default runtime. The internal `catalog:checkAvailability` action returns availability across the live branch directory. It does not save observations or send notifications. The React POC still uses the local Node API.
+The same functions run in local and cloud Convex deployments. Each deployment has separate data and environment variables. Local development requires the backend process to stay running. Catalog requests still reach the live library catalog. The POC does not save observations or send notifications yet.
 
-The Convex CLI is included in the project dependencies. It is also installed globally on this machine. On another machine, install dependencies and connect to the existing project:
+The Convex CLI is included in the project dependencies. To connect a machine to an existing cloud project:
 
 ```sh
 npm install
@@ -39,25 +38,32 @@ npm run convex -- login
 npm run convex -- dev --configure existing --team YOUR_TEAM --project YOUR_PROJECT --dev-deployment cloud --once
 ```
 
-The CLI saves deployment configuration in the ignored `.env.local`. To publish backend changes to the configured development deployment and run the cloud check:
+After creating a local deployment, switch between local and personal cloud development with:
 
 ```sh
-npm run convex -- dev --once --typecheck enable
+npm run convex -- deployment select local
+# Or
+npm run convex -- deployment select dev
+```
+
+Restart `npm run dev` after switching deployments. You can also invoke the internal availability check from another terminal against the selected backend:
+
+```sh
 npm run convex -- run catalog:checkAvailability '{"recordId":"1.1906252"}'
 ```
 
-Run `npm run convex -- dev` to sync backend changes continuously during development. Generated bindings in `convex/_generated` belong in Git. The production build also typechecks Convex functions.
+Use `npm run convex -- dev --once --typecheck enable` to sync to cloud development without starting the frontend. For a local backend, keep `npm run dev` or `npm run convex -- dev` running while invoking functions. Generated bindings in `convex/_generated` belong in Git. The production build also typechecks Convex functions. `.env.example` contains placeholders for manual cloud configuration; no deployment secrets belong in the frontend.
 
-## API
+## Convex API
 
-- `GET /api/search?q=...&startRecord=1&limit=20`: physical search results with the next catalog offset, or a resolved record ID for direct input
-- `GET /api/availability/:recordId`: the confirmed physical book and statuses for every public physical branch
-- `GET /api/branches`: the dynamic branch directory
-- `GET /api/health`: server health
+- `catalog.search({ input, startRecord?, limit? })`: physical search results with the next catalog offset, or a resolved record ID for direct input
+- `catalog.getAvailability({ recordId })`: the confirmed physical book and statuses for every public physical branch
+- `catalog.getBranches({})`: the dynamic branch directory
+- `catalog.checkAvailability({ recordId })`: internal availability check for backend and CLI use
 
-`server/handler.ts` accepts standard Fetch `Request`/`Response` objects. `src/service.ts` handles catalog operations independently of the Node HTTP listener. This keeps the API suitable for a future cloud-function adapter. The POC has no database, accounts, saved lists, or notification jobs yet. Future storage will connect users to their book lists, chosen branches, notification preferences, and observations/delivery state.
+The frontend uses Convex's generated API and React client. `src/service.ts` handles input validation, physical filtering, and all-branch availability for the public and internal actions. Expected input and record errors return useful messages; upstream failures return a generic message. The POC has no accounts, saved lists, or notification jobs yet. Future storage will connect users to their book lists, chosen branches, notification preferences, and observations/delivery state. Scheduled monitoring will call internal functions using this same catalog code.
 
-Only exact HTTPS `catalog.ebrpl.com/iguana/www.main.cls` record URLs are accepted. The server extracts the record ID and never fetches a user-supplied URL. Bare 10- and 13-digit inputs are searched as ISBNs. Use the `1.` prefix to disambiguate a numeric catalog ID of those lengths.
+Only exact HTTPS `catalog.ebrpl.com/iguana/www.main.cls` record URLs are accepted. The backend extracts the record ID and never fetches a user-supplied URL. Bare 10- and 13-digit inputs are searched as ISBNs. Use the `1.` prefix to disambiguate a numeric catalog ID of those lengths.
 
 ## Catalog CLI and client
 
@@ -99,6 +105,6 @@ npm run typecheck
 npm test
 ```
 
-The core typecheck excludes Node ambient types. Separate configurations check the frontend, server, tests, and Vite setup. Targeted tests use recorded, sanitized XML and mocked HTTP responses for catalog parsing, input resolution, directory discovery, physical pagination, all-branch joins, and safe HTTP errors. See [fixture notes](test/fixtures/README.md) for the observed protocol and its limits.
+The core and Convex typechecks exclude Node ambient types. Separate configurations check the frontend, existing tests, and Vite setup. Existing tests use recorded, sanitized XML and mocked HTTP responses for catalog parsing, input resolution, directory discovery, physical pagination, and all-branch joins. See [fixture notes](test/fixtures/README.md) for the observed protocol and its limits.
 
-The core now runs in a deployed Convex action using web APIs. The Node API can also be adapted to another cloud-function host. Frontend hosting, database/auth integration, scheduled checks, and email notifications remain future work.
+Frontend hosting, database/auth integration, scheduled checks, and email notifications remain future work.

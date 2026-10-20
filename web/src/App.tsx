@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import type { AvailabilityResponse, SearchResponse } from '../../src/api-model';
+import { useAction } from 'convex/react';
+import { ConvexError } from 'convex/values';
+import { api } from '../../convex/_generated/api';
+import type { AvailabilityResponse } from '../../src/api-model';
 import type { AvailabilityStatus, Book, BranchObservation } from '../../src/model';
 
 const examples = [
@@ -16,17 +19,9 @@ const statusLabels: Record<AvailabilityStatus, string> = {
 };
 const statusOrder: Record<AvailabilityStatus, number> = { available: 0, unavailable: 1, unknown: 2, 'not-held': 3 };
 
-async function getJson<T>(url: string, signal: AbortSignal): Promise<T> {
-  const response = await fetch(url, { signal, headers: { Accept: 'application/json' } });
-  if (!response.ok) {
-    let message = 'The library catalog could not complete this request. Please try again.';
-    try {
-      const body = await response.json() as { error?: unknown };
-      if (typeof body.error === 'string' && body.error.trim()) message = body.error;
-    } catch { /* Use the fallback when the server has no JSON error */ }
-    throw new Error(message);
-  }
-  return response.json() as Promise<T>;
+function errorMessage(error: unknown): string {
+  return error instanceof ConvexError && typeof error.data === 'string' ? error.data :
+    'The library catalog could not complete this request. Please try again.';
 }
 
 function BookIcon({ small = false }: { small?: boolean }) {
@@ -63,6 +58,8 @@ function recordFromLocation(): string | null {
 }
 
 export function App() {
+  const searchCatalog = useAction(api.catalog.search);
+  const getAvailability = useAction(api.catalog.getAvailability);
   const [input, setInput] = useState('');
   const [query, setQuery] = useState('');
   const [books, setBooks] = useState<Book[]>([]);
@@ -78,6 +75,7 @@ export function App() {
   const [isChecking, setIsChecking] = useState(false);
   const [detailError, setDetailError] = useState('');
   const detailPanel = useRef<HTMLElement | null>(null);
+  // Ignore superseded results while their Convex actions finish
   const searchController = useRef<AbortController | null>(null);
   const detailController = useRef<AbortController | null>(null);
   const failedSearch = useRef({ query: '', startRecord: 1 });
@@ -98,12 +96,12 @@ export function App() {
     setIsChecking(true);
     if (writeLocation) updateLocation(recordId);
     try {
-      const result = await getJson<AvailabilityResponse>(`/api/availability/${encodeURIComponent(recordId)}`, controller.signal);
+      const result = await getAvailability({ recordId });
       if (controller.signal.aborted) return;
       setAvailability(result);
       setSelectedBook(result.book);
     } catch (error) {
-      if (!controller.signal.aborted) setDetailError(error instanceof Error ? error.message : 'Please try again.');
+      if (!controller.signal.aborted) setDetailError(errorMessage(error));
     } finally {
       if (!controller.signal.aborted) setIsChecking(false);
     }
@@ -138,8 +136,7 @@ export function App() {
       setIsLoadingMore(false);
     }
     try {
-      const params = new URLSearchParams({ q: submittedQuery, startRecord: String(startRecord), limit: '20' });
-      const result = await getJson<SearchResponse>(`/api/search?${params}`, controller.signal);
+      const result = await searchCatalog({ input: submittedQuery, startRecord, limit: 20 });
       if (controller.signal.aborted) return;
       if (result.kind === 'record') {
         setHasSearched(false);
@@ -152,7 +149,7 @@ export function App() {
         if (!isMore && physicalBooks[0]) void selectBook(physicalBooks[0].recordId, physicalBooks[0]);
       }
     } catch (error) {
-      if (!controller.signal.aborted) setSearchError(error instanceof Error ? error.message : 'Please try again.');
+      if (!controller.signal.aborted) setSearchError(errorMessage(error));
     } finally {
       if (!controller.signal.aborted) {
         setIsSearching(false);
