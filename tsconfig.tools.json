@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": { "rootDir": ".", "noEmit": true },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "docs/**/*.ts"]
 }
