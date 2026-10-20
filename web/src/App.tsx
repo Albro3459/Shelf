@@ -6,6 +6,7 @@ import { api } from '../../convex/_generated/api';
 import type { AvailabilityResponse } from '../../src/api-model';
 import type { AvailabilityStatus, Book, BranchObservation } from '../../src/model';
 import { AccountControls } from './AccountControls';
+import { MyLists, SaveBookControl, useShelfAccount } from './lists';
 
 const examples = [
   { label: 'Fruit fly', query: 'Fruit fly' },
@@ -63,6 +64,8 @@ function recordFromLocation(): string | null {
 }
 
 export function App() {
+  const account = useShelfAccount();
+  const [view, setView] = useState(() => new URLSearchParams(window.location.hash.slice(1)).get('view') === 'lists' ? 'lists' : 'catalog');
   const searchCatalog = useAction(api.catalog.search);
   const getAvailability = useAction(api.catalog.getAvailability);
   const [input, setInput] = useState('');
@@ -90,7 +93,20 @@ export function App() {
     if (window.location.hash !== hash) window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${hash}`);
   }
 
+  function showLists() {
+    setView('lists');
+    if (window.location.hash !== '#view=lists') window.history.pushState(null, '', `${window.location.pathname}${window.location.search}#view=lists`);
+    window.scrollTo({ top: 0 });
+  }
+
+  function showCatalog() {
+    setView('catalog');
+    updateLocation(selectedId);
+    window.scrollTo({ top: 0 });
+  }
+
   async function selectBook(recordId: string, book: Book | null = null, writeLocation = true) {
+    setView('catalog');
     detailController.current?.abort();
     const controller = new AbortController();
     detailController.current = controller;
@@ -167,6 +183,7 @@ export function App() {
     const initialRecord = recordFromLocation();
     if (initialRecord) void selectBook(initialRecord, null, false);
     const onNavigate = () => {
+      setView(new URLSearchParams(window.location.hash.slice(1)).get('view') === 'lists' ? 'lists' : 'catalog');
       searchController.current?.abort();
       setIsSearching(false);
       setIsLoadingMore(false);
@@ -181,11 +198,11 @@ export function App() {
         setIsChecking(false);
       }
     };
-    window.addEventListener('popstate', onNavigate);
+    window.addEventListener('hashchange', onNavigate);
     return () => {
       searchController.current?.abort();
       detailController.current?.abort();
-      window.removeEventListener('popstate', onNavigate);
+      window.removeEventListener('hashchange', onNavigate);
     };
   }, []);
 
@@ -213,7 +230,9 @@ export function App() {
 
   return <div className="app-shell">
     <header className="site-header"><a className="brand" href={window.location.pathname} aria-label="Shelf home"><img className="brand-icon" src="/shelf.svg" width="48" height="48" alt=""/><span>Shelf<span className="brand-dot">.</span></span></a><div className="header-actions"><div className="library-name"><span className="library-mark" aria-hidden="true"/>East Baton Rouge<span className="library-name-second">Parish Library</span></div><AccountControls/></div></header>
+    <nav className="view-tabs" aria-label="Shelf navigation"><button aria-current={view === 'catalog' ? 'page' : undefined} onClick={showCatalog}>Find books</button><button aria-current={view === 'lists' ? 'page' : undefined} onClick={showLists}>My lists</button></nav>
     <main>
+      {view === 'lists' ? <MyLists key={account.user?._id ?? 'signed-out'} onOpenBook={openBook} onFindBooks={showCatalog}/> : <>
       <section className={`hero${hasWorkspace ? ' compact' : ''}`} aria-labelledby="page-title">
         <div className="eyebrow"><span/>YOUR NEXT READ, NEARBY</div>
         <h1 id="page-title">A good book.{' '}<br/>A <em>nearby</em> shelf.</h1>
@@ -239,12 +258,14 @@ export function App() {
           {!selectedId ? <div className="detail-placeholder"><div className="placeholder-books" aria-hidden="true"><span/><span/><span/></div><span className="eyebrow">FROM PAGE TO PLACE</span><h2>Find your copy.</h2><p>Choose a book to see its availability<br/>across the parish.</p></div> : <>
             <div className="detail-heading"><span className="eyebrow">ON THE SHELF</span>{selectedBook && <span className="physical-label">Physical book</span>}</div>
             {selectedBook && <><div className="selected-book"><Cover book={selectedBook} large/><div><h2>{selectedBook.title}</h2><p className="detail-authors">{selectedBook.authors.join(', ') || 'Author not listed'}</p><a className="catalog-link" href={selectedBook.catalogUrl} target="_blank" rel="noopener noreferrer">View in library catalog <Arrow external/></a></div></div><dl className="book-metadata">{selectedBook.isbns.length > 0 && <div><dt>ISBN</dt><dd>{selectedBook.isbns.join(' · ')}</dd></div>}<div><dt>Record</dt><dd>{selectedBook.recordId}</dd></div></dl></>}
+            {availability && selectedBook && <SaveBookControl key={`${account.user?._id ?? 'signed-out'}:${selectedId}`} recordId={selectedId} onOpenLists={showLists}/>}
             {isChecking && <div className="loading-state detail-loading" role="status"><span className="spinner"/>Checking branch availability…</div>}
             {detailError && <ErrorMessage message={detailError} retry={() => void selectBook(selectedId, selectedBook)}/>}
             {availability && <><div className="availability-heading"><div><h3>Branch availability</h3><p>{availableCount > 0 ? `Available at ${availableCount} ${availableCount === 1 ? 'branch' : 'branches'}` : knownCount > 0 ? 'No available copies reported' : 'Availability could not be confirmed'}</p></div><button className="refresh-button" onClick={() => void selectBook(selectedId, selectedBook)} aria-label="Refresh branch availability" title="Refresh availability">↻</button></div><div className="checked-at">{checkedLabel ? <>Checked <time dateTime={availability.checkedAt}>{checkedLabel}</time></> : 'Latest catalog response'}<span>Availability can change</span></div>{branches.length > 0 ? <ul className="branch-list">{branches.map(branch => <BranchRow key={branch.branchCode} branch={branch}/>)}</ul> : <p className="no-holdings">The catalog returned no branch information for this record. Check the library catalog for more details.</p>}<p className="availability-note">Missing holdings do not confirm whether a branch owns a copy. Check the library catalog for loan details.</p></>}
           </>}
         </aside>
       </section>}
+      </>}
     </main>
     <footer className="site-footer"><span><BookIcon small/>Made for the next chapter.</span><p>Live information from the EBRPL catalog.</p><a href="https://www.ebrpl.com/" target="_blank" rel="noopener noreferrer">Visit EBRPL <Arrow external/></a></footer>
   </div>;

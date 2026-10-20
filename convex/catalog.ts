@@ -1,5 +1,7 @@
 import { ConvexError, v } from 'convex/values';
 import { action, internalAction } from './_generated/server';
+import { internal } from './_generated/api';
+import type { Id } from './_generated/dataModel';
 import type { AvailabilityResponse, BranchDirectoryResponse, SearchResponse } from '../src/api-model.js';
 import { CatalogRecordError, InputError, createCatalogService, createEbrplClient } from '../src/index.js';
 
@@ -36,4 +38,16 @@ export const checkAvailability = internalAction({
   args: { recordId: v.string() },
   handler: async (_ctx, { recordId }): Promise<AvailabilityResponse> =>
     await catalogRequest(() => catalog.getAvailability(recordId)),
+});
+
+export const saveToList = action({
+  args: { listId: v.id('lists'), recordId: v.string() },
+  handler: async (ctx, { listId, recordId }): Promise<Id<'books'>> => {
+    await ctx.runQuery(internal.lists.checkOwnership, { listId });
+    const { book } = await catalogRequest(() => catalog.getAvailability(recordId));
+    return await ctx.runMutation(internal.books.saveToList, {
+      listId, recordId: book.recordId, title: book.title, authors: book.authors,
+      isbns: book.isbns, physicalFormat: book.materialType,
+    });
+  },
 });

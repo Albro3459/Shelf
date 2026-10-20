@@ -15,6 +15,8 @@ Create the local deployment once. On subsequent runs, use `npm run dev`. It star
 
 Enter a title, author, ISBN, EBRPL record ID (`1.1906252` or `1906252`), or a complete HTTPS catalog record link. Search results show confirmed physical books. Selecting one checks all public physical branches returned by the catalog's live directory. Missing holdings stay unknown and are not treated as unavailable.
 
+Sign in with an approved account to create book lists. Choose a list on a book's detail panel to save it, then open **My lists** to revisit its availability, rename lists, or remove books. Saved lists persist in Convex and update across sessions. Saving a book does not enable notifications.
+
 The API filters one upstream catalog page at a time. A page containing only digital items can have no physical results and still have a next page. Load more to continue. Catalog totals include all formats.
 
 Build and preview the static frontend while your selected Convex backend is running:
@@ -60,8 +62,11 @@ Use `npm run convex -- dev --once --typecheck enable` to sync to cloud developme
 - `catalog.getAvailability({ recordId })`: the confirmed physical book and statuses for every public physical branch
 - `catalog.getBranches({})`: the dynamic branch directory
 - `catalog.checkAvailability({ recordId })`: internal availability check for backend and CLI use
+- `catalog.saveToList({ listId, recordId })`: confirm catalog metadata and save a book to an owned list
+- `lists.mine({})`, `lists.get({ listId })`, `lists.containingRecord({ recordId })`: the active user's private lists, saved books, and memberships
+- `lists.create({ name })`, `lists.rename({ listId, name })`, `lists.remove({ listId })`, `lists.removeBook({ listId, bookId })`: private list management
 
-The frontend uses Convex's generated API and React client. `src/service.ts` handles input validation, physical filtering, and all-branch availability for the public and internal actions. Expected input and record errors return useful messages; upstream failures return a generic message. Google sign-in creates a Convex Auth account. Saved lists and notification jobs are planned. Scheduled monitoring will call internal functions using this same catalog code.
+The frontend uses Convex's generated API and React client. `src/service.ts` handles input validation, physical filtering, and all-branch availability for the public and internal actions. Expected input and record errors return useful messages; upstream failures return a generic message. Google sign-in creates a Convex Auth account. Private list functions derive ownership from that account, and books use internal Convex IDs with separate catalog record and ISBN references. Scheduled monitoring will call internal functions using this same catalog code.
 
 Only exact HTTPS `catalog.ebrpl.com/iguana/www.main.cls` record URLs are accepted. The backend extracts the record ID and never fetches a user-supplied URL. Bare 10- and 13-digit inputs are searched as ISBNs. Use the `1.` prefix to disambiguate a numeric catalog ID of those lengths.
 
@@ -82,7 +87,7 @@ The auth initializer creates `JWT_PRIVATE_KEY` and `JWKS` on the selected backen
 
 Open `http://localhost:5173` for this configuration. `SITE_URL` must match the frontend address used for sign-in. Set it to the final HTTPS frontend URL when deploying. Sign-in preserves the current path and book hash, and Convex Auth exchanges and removes the callback's query code. Google credentials and signing keys stay on the backend.
 
-Catalog search remains public. `users.current` returns only the authenticated user's basic profile, using Convex Auth's canonical `users._id`. New accounts have pending access and notifications disabled. Repeat sign-ins preserve access and preferences. List and notification features will require active access when implemented. See the [data model](docs/data-model.md).
+Catalog search remains public. `users.current` returns only the authenticated user's basic profile and access status, using Convex Auth's canonical `users._id`. New accounts have pending access and notifications disabled. Repeat sign-ins preserve access and preferences. Lists require active access, as will future notification features. An administrator can approve an account with the internal `users.setAccess({ userId, accessStatus: 'active' })` mutation through the dashboard or CLI. See the [data model](docs/data-model.md).
 
 Setup follows the [Convex Auth guide](https://labs.convex.dev/auth/setup) and [Google provider configuration](https://labs.convex.dev/auth/config/oauth/google).
 
@@ -128,4 +133,4 @@ npm test
 
 The core and Convex typechecks exclude Node ambient types. Separate configurations check the frontend, existing tests, and Vite setup. Existing tests use recorded, sanitized XML and mocked HTTP responses for catalog parsing, input resolution, directory discovery, physical pagination, and all-branch joins. See [fixture notes](test/fixtures/README.md) for the observed protocol and its limits.
 
-Frontend hosting, saved lists, scheduled checks, and email notifications remain future work.
+Frontend hosting, edition discovery, scheduled checks, and email notifications remain future work.

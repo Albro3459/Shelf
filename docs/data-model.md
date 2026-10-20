@@ -1,6 +1,6 @@
 # Shelf data model
 
-The [TypeScript scaffold](schema.ts) documents the agreed document shapes and is included in the project typecheck. `convex/schema.ts` currently implements Convex Auth's managed tables and the extended `users` table. The remaining domain tables and indexes are planned. Application code uses the runtime schema's generated `Doc` and `Id` types.
+The [TypeScript scaffold](schema.ts) documents the agreed document shapes and is included in the project typecheck. `convex/schema.ts` implements Convex Auth's managed tables, extended `users`, `lists`, `listItems`, `books`, `bookIsbns`, `librarySystems`, and `catalogRecords`. Branches, subscriptions, observations, events, and notifications are planned. Application code uses the runtime schema's generated `Doc` and `Id` types.
 
 Every document gets a generated Convex `_id` and `_creationTime`. Other timestamps are Unix milliseconds. ISBNs, provider account IDs, and library record IDs are external identifiers.
 
@@ -49,9 +49,13 @@ Use Convex Auth with Google sign-in. Its `users._id`, returned by `getAuthUserId
 
 `ShelfUserDoc` includes selected profile fields and app additions. Preserve the complete managed auth schema when extending it. Missing or pending `accessStatus` denies private account features. Treat a missing email preference as disabled.
 
-Google sign-in requires a verified Google email. New users start with pending access and email notifications disabled. Repeat sign-ins preserve those fields. Pending users can sign in and view their own basic account identity, but future list and subscription functions must require active access. Disabled users cannot create new sessions or retrieve their account profile. There is no client-facing access approval function.
+Google sign-in requires a verified Google email. New users start with pending access and email notifications disabled. Repeat sign-ins preserve those fields. Pending users can sign in and view their own basic account identity. All list functions require active access, as will future subscription functions. Disabled users cannot create new sessions or retrieve their account profile. `users.setAccess` is an internal mutation for account approval through the dashboard or authenticated CLI. There is no client-facing access approval function.
 
 A user can own multiple named lists. Each list contains a given book once. Books are shared across users, while lists and alert choices are private. Saving a book does not enable an alert by itself. Removing a list entry does not disable an independently selected subscription.
+
+The initial UI supports creating, renaming, and deleting lists, saving catalog books, and removing saved books. List names are 1–80 characters, with up to 50 lists per account and 200 books per list. Private queries return no data for inactive accounts or another user's list. Mutations resolve the authenticated user and check the parent list's ownership. Deleting a list removes its memberships atomically and preserves shared books and catalog metadata.
+
+`catalog.saveToList` accepts only a list ID and source record ID. It checks ownership before fetching a full physical catalog record, then calls an internal mutation that rechecks access and ownership before saving. Catalog metadata cannot be supplied by the browser. External record and list-membership lookup and insertion happen in the same transaction, so retries and concurrent saves reuse the same book and membership.
 
 Each subscription selects one user, book, and branch. Email is the only initial channel, so subscription `isEnabled` controls its alerts and the user's `emailNotificationsEnabled` is the account-wide switch. Enforce one subscription per user/book/branch even when the book appears in several lists. Disable subscriptions in place so re-enabling one can reuse its notification history. A standalone library is one system with one branch.
 
@@ -62,6 +66,8 @@ The browser calls Convex functions through the SDK. Backend functions enforce ow
 Use `books._id` as the internal book ID. A Shelf book groups confirmed physical editions of the same work in the same language, including hardcover and paperback. ISBNs identify particular editions and formats. Multiple ISBNs and multiple records within one catalog can therefore link to one Shelf book. Never merge by title alone. Confirm matching metadata and keep ambiguous records separate.
 
 `bookIsbns` supports indexed ISBN lookup. Validate checksums, remove separators, and convert valid ISBN-10 values to their equivalent ISBN-13 values. `catalogRecords.observedIsbns` preserves the identifiers reported by the catalog. Conflicting identifier ownership needs review before linking or merging books.
+
+Initial saves reuse a book only for the same library system and external record ID. Different records start as separate books until their edition and language relationship can be confirmed. Saving does not merge by title or ISBN and does not discover other editions yet. Valid ISBNs are indexed only when unclaimed, while conflicting identifiers remain in the source record's `observedIsbns` for later review. Existing shared metadata is preserved when another user saves the same record.
 
 The current client accepts ISBN input through its catalog's keyword index. Results require full-record confirmation when brief responses omit identifiers. An ISBN search discovers source record IDs, which are still required for availability checks. One ISBN alone will not discover every physical edition of a work.
 
@@ -75,7 +81,7 @@ Enter actual configuration values directly into the backend after deployment. Ke
 
 Only admin/internal functions may edit catalog configuration. Validate fetch destinations, including redirects, and prevent users from supplying arbitrary fetch URLs. Return only the public catalog links needed by the frontend. Adapter request and parsing logic stays in TypeScript, while URL values come from backend configuration.
 
-The existing catalog client still contains URL constants. Replacing those constants and adapting URL validation and link generation is implementation work after this scaffold.
+The existing catalog client still contains URL constants. The first saved book initializes the current system's backend configuration from those existing adapter values, without accepting configuration from the browser. Saved catalog links use that configuration. Replacing the client's constants and adapting fetch destination validation remains separate implementation work. No actual URL values are added to committed seed data.
 
 ## Observations and available periods
 
@@ -150,7 +156,7 @@ Retention must preserve open periods and the notification keys needed to prevent
 
 ## Deployment boundary
 
-The static React frontend will use GitHub Pages over HTTPS with hash routing. Convex hosts Google authentication and catalog actions. Database access beyond the auth tables, schedules, and email actions are planned. Configure Vite's base and asset URLs for the hosting path, build with the backend's public `VITE_CONVEX_URL`, and keep provider secrets on the backend. Hosting is not configured yet.
+The static React frontend will use GitHub Pages over HTTPS. Hash navigation supports catalog records and the `#view=lists` page. Convex hosts Google authentication, catalog actions, and private lists. Schedules and email actions are planned. Configure Vite's base and asset URLs for the hosting path, build with the backend's public `VITE_CONVEX_URL`, and keep provider secrets on the backend. Hosting is not configured yet.
 
 ## Sources
 

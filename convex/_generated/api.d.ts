@@ -8,9 +8,13 @@
  * @module
  */
 
+import type * as access from "../access.js";
 import type * as auth from "../auth.js";
+import type * as books from "../books.js";
 import type * as catalog from "../catalog.js";
 import type * as http from "../http.js";
+import type * as listModel from "../listModel.js";
+import type * as lists from "../lists.js";
 import type * as users from "../users.js";
 
 import type {
@@ -20,9 +24,13 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  access: typeof access;
   auth: typeof auth;
+  books: typeof books;
   catalog: typeof catalog;
   http: typeof http;
+  listModel: typeof listModel;
+  lists: typeof lists;
   users: typeof users;
 }>;
 

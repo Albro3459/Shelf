@@ -14,13 +14,13 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }
 button:disabled { cursor: default; opacity: .58; }
 a { color: inherit; }
 button { color: inherit; }
-button, input, a { outline-offset: 5px; }
+button, input, select, a, summary { outline-offset: 5px; }
 :focus-visible { outline: 3px solid #b85a37; }
 button svg, a svg { flex-shrink: 0; }
 h1, h2, h3, p { margin: 0; }
@@ -39,6 +39,54 @@ button { border: 0; }
 .account-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 42px; padding: 10px 14px; border: 1px solid #b8c1b5; background: #fffef9; font-size: 12px; white-space: nowrap; }
 .account-button:hover:not(:disabled) { border-color: var(--forest); background: #edf0e5; }
 .account-error { position: absolute; top: calc(100% + 8px); right: 0; width: 245px; z-index: 1; padding: 12px; border: 1px solid #d2b7a4; background: #fff8ed; color: #8d432d; font-size: 12px; line-height: 1.5; }
+.view-tabs { display: flex; gap: 26px; border-bottom: 1px solid var(--border); }
+.view-tabs button { background: transparent; padding: 16px 0 14px; border-bottom: 2px solid transparent; font-size: 12px; color: var(--muted); }
+.view-tabs button[aria-current="page"] { color: var(--forest); border-bottom-color: var(--forest); font-weight: 600; }
+.my-lists { padding: 46px 0 64px; }
+.lists-intro { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 36px; }
+.lists-intro h1 { font-size: 54px; letter-spacing: -1.8px; margin-top: 12px; }
+.lists-intro p { color: var(--muted); font-size: 13px; line-height: 1.8; margin-top: 14px; }
+.lists-workspace { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 40px; align-items: start; }
+.lists-sidebar { border: 1px solid var(--border); padding: 18px; background: #eeeee3; min-width: 0; }
+.list-tabs { display: grid; gap: 5px; margin-bottom: 20px; }
+.list-tabs:empty { display: none; }
+.list-tabs button { display: flex; align-items: center; justify-content: space-between; text-align: left; gap: 12px; width: 100%; padding: 12px; border: 1px solid transparent; background: transparent; font-size: 12px; line-height: 1.5; }
+.list-tabs button.selected { border-color: #b8c1b5; background: #fffef9; }
+.list-tabs button > span:first-child { overflow-wrap: anywhere; min-width: 0; }
+.list-tabs button > span:last-child { color: var(--muted); font-size: 11px; }
+.new-list-form, .rename-list-form, .save-book form { display: grid; gap: 9px; }
+.new-list-form label, .rename-list-form label, .save-book label { font-size: 11px; color: #4e6352; }
+.list-form-row { display: flex; gap: 9px; flex-wrap: wrap; }
+.list-form-row input, .list-form-row select { min-width: 0; flex: 1 1 120px; width: 100%; height: 40px; padding: 9px 10px; color: var(--forest); background: #fffef9; border: 1px solid #b8c1b5; border-radius: 3px; font-size: 12px; }
+.list-primary-button, .list-cancel-button, .list-danger-button { padding: 11px 13px; font-size: 11px; border-radius: 3px; }
+.list-primary-button { color: #fffdf4; background: var(--forest); }
+.list-primary-button:hover:not(:disabled) { background: #26594b; }
+.list-cancel-button { background: transparent; border: 1px solid #b8c1b5; }
+.list-danger-button { color: #fffdf4; background: #8d432d; }
+.list-error { color: #8d432d; background: #fbf0e8; padding: 10px 12px; font-size: 12px; line-height: 1.7; margin-top: 10px; overflow-wrap: anywhere; }
+.list-note { font-size: 12px; line-height: 1.8; color: var(--muted); }
+.list-success { font-size: 11px; line-height: 1.8; color: #416b37; margin-top: 8px; }
+.list-success:empty { display: none; }
+.save-book { margin-top: 21px; padding: 17px; border: 1px solid var(--border); background: #f3f4e9; }
+.save-book > .list-note + form { margin-top: 14px; }
+.save-book .text-button { font-size: 11px; }
+.create-list-details { margin-top: 12px; font-size: 11px; }
+.create-list-details summary { width: fit-content; cursor: pointer; }
+.create-list-details form { margin-top: 15px; }
+.list-contents { min-width: 0; }
+.list-contents .section-heading { align-items: flex-start; }
+.list-contents .section-heading h2 { overflow-wrap: anywhere; }
+.list-heading-actions { display: flex; flex-shrink: 0; gap: 12px; padding-top: 4px; }
+.list-heading-actions button { font-size: 10px; text-decoration: underline; text-underline-offset: 4px; background: transparent; padding: 4px 0; }
+.rename-list-form { padding-bottom: 20px; }
+.delete-list-confirmation { padding: 18px; border: 1px solid #d2b7a4; background: #fff8ed; margin-bottom: 20px; }
+.delete-list-confirmation p { font-size: 12px; line-height: 1.8; margin-bottom: 12px; overflow-wrap: anywhere; }
+.saved-book-list { list-style: none; padding: 0; margin: 0; }
+.saved-book-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 23px 0; border-bottom: 1px solid var(--border); }
+.saved-book-row > div { min-width: 0; }
+.saved-book-row h3 { font: 400 24px/1.3 Georgia, "Times New Roman", serif; overflow-wrap: anywhere; }
+.saved-book-row p { font-size: 12px; line-height: 1.8; color: var(--muted); margin-top: 8px; overflow-wrap: anywhere; }
+.remove-book-button { flex-shrink: 0; padding: 8px 0; background: transparent; font-size: 11px; color: #8d6449; text-decoration: underline; text-underline-offset: 4px; }
 .hero { padding: 74px 0 52px; max-width: 940px; }
 .eyebrow { display: inline-flex; align-items: center; gap: 9px; font-size: 10px; font-weight: 650; letter-spacing: 1.9px; line-height: 1.6; }
 .hero > .eyebrow { color: #697266; }
@@ -184,6 +232,8 @@ h1 em { color: var(--orange); font-weight: 400; }
   .site-header { height: 89px; }
   .header-actions > .library-name { display: none; }
   .account-name { max-width: 130px; }
+  .lists-workspace { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .lists-sidebar .list-form-row input { flex-basis: 180px; }
   .hero { padding-top: 55px; }
   .workspace { grid-template-columns: minmax(0, 1fr); gap: 30px; }
   .hero.compact { padding-top: 35px; }
@@ -206,6 +256,14 @@ h1 em { color: var(--orange); font-weight: 400; }
   .account-controls { gap: 8px; }
   .account-name { display: none; }
   .account-button { padding: 9px 10px; font-size: 11px; gap: 8px; }
+  .my-lists { padding: 32px 0 40px; }
+  .lists-intro { flex-wrap: wrap; gap: 18px; margin-bottom: 26px; }
+  .lists-intro h1 { font-size: 45px; }
+  .list-contents .section-heading { flex-wrap: wrap; }
+  .list-heading-actions { padding-top: 0; }
+  .saved-book-row { gap: 15px; }
+  .saved-book-row h3 { font-size: 22px; }
+  .save-book { padding: 14px; }
   .brand { font-size: 31px; gap: 9px; }
   .brand-icon { width: 40px; height: 40px; }
   .library-name { font-size: 9px; gap: 0 6px; }
