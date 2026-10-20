@@ -1,4 +1,5 @@
 import { parseXml, XmlElement } from '@rgrove/parse-xml';
+import { cleanCatalogText } from './catalog-text.js';
 import { CatalogError, LANDING_URL } from './model.js';
 import type { Book, BranchObservation } from './model.js';
 
@@ -12,10 +13,6 @@ function child(parent: XmlElement, name: string): XmlElement | undefined {
 
 function field(parent: XmlElement, name: string): string {
   return child(parent, name)?.text.trim() ?? '';
-}
-
-function removeHighlights(value: string): string {
-  return value.replace(/<\/?q>/gi, '');
 }
 
 export function parseResponse(xml: string): { total: number; documents: XmlElement[] } {
@@ -73,13 +70,13 @@ export function parseBook(document: XmlElement): Book {
     return '';
   };
   const rawTitle = first('FullTitleAll') || [first('BriefMainTitle', 'FullMainTitle'), first('BriefTitle', 'FullTitle')].filter(Boolean).join(' ');
-  const title = removeHighlights(rawTitle.split('#!#')[0] ?? '').replace(/\s*--$/, '').trim();
+  const title = cleanCatalogText(rawTitle.split('#!#')[0] ?? '').replace(/\s*--$/, '').trim();
   if (!title) throw new CatalogError('Catalog record has no title');
   const rawAuthors = fields.get('BriefAuthor') ?? fields.get('FullAuthorInverted') ?? [];
   const authors = [...new Set(rawAuthors.flatMap(value => {
     if (!value.includes('$^')) return [value];
     return [...value.matchAll(/\$\^([^\^]+)\^/g)].flatMap(match => match[1] ? [match[1].trim()] : []);
-  }).map(removeHighlights).filter(Boolean))];
+  }).map(cleanCatalogText).filter(Boolean))];
   const isbns = new Set<string>();
   for (const name of ['FullNumber', 'BriefNumber']) {
     for (const value of fields.get(name) ?? []) {

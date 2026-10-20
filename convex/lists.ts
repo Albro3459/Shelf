@@ -4,6 +4,7 @@ import { activeUserId, requireActiveUserId, requireOwnedList } from './access';
 import { MAX_LIST_ITEMS, MAX_LIST_NAME, MAX_LISTS } from './listModel';
 import type { ListDetail, ListSummary, SavedListItem } from './listModel';
 import { normalizeRecordId } from '../src/input.js';
+import { cleanCatalogText } from '../src/catalog-text.js';
 
 function listName(rawName: string): string {
   const name = rawName.trim();
@@ -41,10 +42,12 @@ export const get = query({
       if (!book) throw new Error('Saved book is missing');
       const record = system ? await ctx.db.query('catalogRecords').withIndex('by_book_system', q =>
         q.eq('bookId', book._id).eq('librarySystemId', system._id)).first() : null;
+      const title = cleanCatalogText(book.title);
+      const authors = book.authors.map(cleanCatalogText);
       return {
-        bookId: book._id, title: book.title, authors: book.authors,
+        bookId: book._id, title, authors,
         catalogBook: record && system ? {
-          recordId: record.externalId, title: book.title, authors: book.authors, isbns: record.observedIsbns,
+          recordId: record.externalId, title, authors, isbns: record.observedIsbns,
           isPhysicalBook: true, documentType: 'Book', materialType: record.physicalFormat ?? null,
           catalogUrl: `${system.config.landingUrl.split('#')[0]}#recordId=${encodeURIComponent(record.externalId)}`,
         } : null,
