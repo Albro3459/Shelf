@@ -7,9 +7,10 @@ import { createEbrplClient } from '../src/client.js';
 import { CatalogRecordError } from '../src/model.js';
 
 export const checkBook = internalAction({
-  args: { bookId: v.id('books') },
-  handler: async (ctx, { bookId }): Promise<void> => {
-    const batch = await ctx.runMutation(internal.monitoring.claimCheck, { bookId });
+  args: { bookId: v.id('books'), requestedOnly: v.optional(v.boolean()) },
+  handler: async (ctx, args): Promise<void> => {
+    const { bookId } = args;
+    const batch = await ctx.runMutation(internal.monitoring.claimCheck, args);
     if (!batch) return;
     const clients = new Map(batch.systems.map(system => [system._id, createEbrplClient({ urls: system.config, timeoutMs: 10000 })]));
     const results = [];

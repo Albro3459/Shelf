@@ -36,6 +36,7 @@ export type ShelfBookDoc = {
   nextCheckAt?: number;
   checkStartedAt?: number;
   checkLeaseExpiresAt?: number;
+  checkPending?: boolean;
   lastCheckAt?: number;
 };
 

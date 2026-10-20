@@ -66,7 +66,7 @@ export function BookAlerts({ listId, bookId, title }: { listId: Id<'lists'>; boo
   }
   return <div className="book-alerts">
     <button className="text-button" aria-label={`Branch alerts for ${title}`} aria-expanded={isOpen} aria-controls={panelId} disabled={isLoading} onClick={() => void toggle()}>{isLoading ? 'Loading branches…' : isOpen ? 'Close alerts' : 'Branch alerts'}</button>
-    <div id={panelId}>{isOpen && (options === undefined ? <p className="list-note" role="status">Loading alert choices…</p> : !options ? <p className="list-note">This saved book is no longer available.</p> : options.branches.length ? <BranchAlertForm listId={listId} bookId={bookId} options={options} onSaved={() => { setIsOpen(false); setMessage('Alert choices saved.'); }}/> : <p className="list-note">No branches are available for alerts.</p>)}</div>
+    <div id={panelId}>{isOpen && (options === undefined ? <p className="list-note" role="status">Loading alert choices…</p> : !options ? <p className="list-note">This saved book is no longer available.</p> : options.branches.length ? <BranchAlertForm key={options.branches.map(branch => `${branch._id}:${Number(branch.isSelected)}`).join('|')} listId={listId} bookId={bookId} options={options} onSaved={() => { setIsOpen(false); setMessage('Alert choices saved.'); }}/> : <p className="list-note">No branches are available for alerts.</p>)}</div>
     {error && <p className="list-error" role="alert">{error}</p>}
     {message && <p className="list-success" role="status">{message}</p>}
   </div>;

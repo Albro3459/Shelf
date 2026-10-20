@@ -3,7 +3,7 @@ import { v } from 'convex/values';
 import { internalMutation } from './_generated/server';
 import { internal } from './_generated/api';
 import { CHECK_INTERVAL_MS, MAX_RECORDS_PER_BOOK, withinCheckHours } from './notificationModel';
-import { currentEvent, currentStatus, eligibleSubscriber, reconcileSubscription } from './notificationState';
+import { currentEvent, currentStatus, eligibleSubscriber, reconcileSubscription, requestCheck } from './notificationState';
 
 export const tick = internalMutation({
   args: {},
@@ -27,27 +27,32 @@ export const queueDue = internalMutation({
 });
 
 export const claimCheck = internalMutation({
-  args: { bookId: v.id('books') },
-  handler: async (ctx, { bookId }) => {
+  args: { bookId: v.id('books'), requestedOnly: v.optional(v.boolean()) },
+  handler: async (ctx, { bookId, requestedOnly }) => {
     const now = Date.now();
     const book = await ctx.db.get(bookId);
-    if (!book || (book.checkLeaseExpiresAt ?? 0) > now) return null;
+    if (!book || (requestedOnly && !book.checkPending)) return null;
+    if ((book.checkLeaseExpiresAt ?? 0) > now) {
+      await ctx.db.patch(bookId, { checkPending: true });
+      await ctx.scheduler.runAfter(book.checkLeaseExpiresAt! - now + 1, internal.polling.checkBook, { bookId, requestedOnly: true });
+      return null;
+    }
     const subscriptions = await ctx.db.query('subscriptions').withIndex('by_book_branch_enabled', q => q.eq('bookId', bookId)).collect();
     const branchIds = [];
     for (const sub of subscriptions) if (await eligibleSubscriber(ctx, sub)) branchIds.push(sub.branchId);
     if (!branchIds.length) {
-      await ctx.db.patch(bookId, { nextCheckAt: undefined });
+      await ctx.db.patch(bookId, { nextCheckAt: undefined, checkPending: false });
       return null;
     }
     const records = await ctx.db.query('catalogRecords').withIndex('by_book_system', q => q.eq('bookId', bookId)).take(MAX_RECORDS_PER_BOOK + 1);
     if (!records.length || records.length > MAX_RECORDS_PER_BOOK) {
-      await ctx.db.patch(bookId, { nextCheckAt: Math.floor(now / CHECK_INTERVAL_MS) * CHECK_INTERVAL_MS + CHECK_INTERVAL_MS });
+      await ctx.db.patch(bookId, { nextCheckAt: Math.floor(now / CHECK_INTERVAL_MS) * CHECK_INTERVAL_MS + CHECK_INTERVAL_MS, checkPending: false });
       return null;
     }
     const branches = (await Promise.all([...new Set(branchIds)].map(id => ctx.db.get(id)))).filter(branch => branch !== null);
     const systems = (await Promise.all([...new Set(records.map(record => record.librarySystemId))].map(id => ctx.db.get(id)))).filter(system => system?.isEnabled).filter(system => system !== null);
     const startedAt = Math.max(now, (book.checkStartedAt ?? 0) + 1);
-    await ctx.db.patch(bookId, { checkStartedAt: startedAt, checkLeaseExpiresAt: now + 10 * 60000, nextCheckAt: Math.floor(now / CHECK_INTERVAL_MS) * CHECK_INTERVAL_MS + CHECK_INTERVAL_MS });
+    await ctx.db.patch(bookId, { checkStartedAt: startedAt, checkLeaseExpiresAt: now + 10 * 60000, checkPending: false, nextCheckAt: Math.floor(now / CHECK_INTERVAL_MS) * CHECK_INTERVAL_MS + CHECK_INTERVAL_MS });
     return { startedAt, records, branches, systems };
   },
 });
@@ -69,6 +74,7 @@ export const finishCheck = internalMutation({
     const records = await ctx.db.query('catalogRecords').withIndex('by_book_system', q => q.eq('bookId', bookId)).take(MAX_RECORDS_PER_BOOK + 1);
     if (records.length !== results.length || records.some(record => !results.some(result => result.catalogRecordId === record._id))) {
       await ctx.db.patch(bookId, { checkLeaseExpiresAt: undefined });
+      await requestCheck(ctx, bookId);
       return;
     }
     for (const result of results) {
@@ -91,9 +97,9 @@ export const finishCheck = internalMutation({
         else await ctx.db.insert('availability', fields);
       }
     }
-    await ctx.db.patch(bookId, { lastCheckAt: startedAt, checkLeaseExpiresAt: undefined });
-    const subscriptions = await ctx.db.query('subscriptions').withIndex('by_book_branch_enabled', q => q.eq('bookId', bookId)).collect();
-    for (const branchId of new Set(subscriptions.filter(sub => sub.isEnabled).map(sub => sub.branchId))) {
+    await ctx.db.patch(bookId, { lastCheckAt: startedAt, checkLeaseExpiresAt: undefined, checkPending: false });
+    const observedBranches = new Set(results.filter(result => !result.errorCode).flatMap(result => result.observations.map(item => item.branchId)));
+    for (const branchId of observedBranches) {
       const status = await currentStatus(ctx, bookId, branchId);
       const event = await currentEvent(ctx, bookId, branchId);
       if (status === 'available' && (!event || event.endedAt !== undefined)) {
@@ -103,6 +109,7 @@ export const finishCheck = internalMutation({
       }
     }
     await ctx.scheduler.runAfter(0, internal.monitoring.reconcileBook, { bookId, paginationOpts: { numItems: 20, cursor: null } });
+    if (book.checkPending) await requestCheck(ctx, bookId);
   },
 });
 

@@ -40,17 +40,30 @@ export async function requestCheck(ctx: MutationCtx, bookId: Id<'books'>): Promi
   if (!book) return;
   const subs = await ctx.db.query('subscriptions').withIndex('by_book_branch_enabled', q => q.eq('bookId', bookId)).collect();
   let needsCheck = false;
+  let hasSubscribers = false;
   for (const sub of subs) {
-    if (await eligibleSubscriber(ctx, sub) && await currentStatus(ctx, bookId, sub.branchId) === 'unknown') needsCheck = true;
+    if (!await eligibleSubscriber(ctx, sub)) continue;
+    hasSubscribers = true;
+    if (await currentStatus(ctx, bookId, sub.branchId) === 'unknown') needsCheck = true;
   }
-  if (!needsCheck) {
-    const now = Date.now();
-    await ctx.db.patch(bookId, { nextCheckAt: Math.floor(now / CHECK_INTERVAL_MS) * CHECK_INTERVAL_MS + CHECK_INTERVAL_MS });
+  if (!hasSubscribers) {
+    await ctx.db.patch(bookId, { nextCheckAt: undefined, checkPending: false });
     return;
   }
-  const delay = Math.max(0, (book.lastCheckAt ?? 0) + 60000 - Date.now());
-  await ctx.db.patch(bookId, { nextCheckAt: Date.now() + delay });
-  await ctx.scheduler.runAfter(delay, internal.polling.checkBook, { bookId });
+  const now = Date.now();
+  if ((book.checkLeaseExpiresAt ?? 0) > now) {
+    await ctx.db.patch(bookId, { checkPending: true });
+    await ctx.scheduler.runAfter(book.checkLeaseExpiresAt! - now + 1, internal.polling.checkBook, { bookId, requestedOnly: true });
+    return;
+  }
+  if (!needsCheck) {
+    const nextHour = Math.floor(now / CHECK_INTERVAL_MS) * CHECK_INTERVAL_MS + CHECK_INTERVAL_MS;
+    await ctx.db.patch(bookId, { nextCheckAt: Math.min(book.nextCheckAt ?? nextHour, nextHour), checkPending: false });
+    return;
+  }
+  const checkAt = Math.max(now, (book.lastCheckAt ?? 0) + 60000);
+  await ctx.db.patch(bookId, { nextCheckAt: Math.min(book.nextCheckAt ?? checkAt, checkAt), checkPending: true });
+  await ctx.scheduler.runAfter(checkAt - now, internal.polling.checkBook, { bookId, requestedOnly: true });
 }
 
 export async function reconcileSubscription(ctx: MutationCtx, subscription: Doc<'subscriptions'>): Promise<void> {

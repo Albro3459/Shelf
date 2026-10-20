@@ -26,6 +26,7 @@ export default defineSchema({
     nextCheckAt: v.optional(v.number()),
     checkStartedAt: v.optional(v.number()),
     checkLeaseExpiresAt: v.optional(v.number()),
+    checkPending: v.optional(v.boolean()),
     lastCheckAt: v.optional(v.number()),
   }).index('by_next_check', ['nextCheckAt']),
   bookIsbns: defineTable({
