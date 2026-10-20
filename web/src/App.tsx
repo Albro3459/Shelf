@@ -94,6 +94,9 @@ export function App() {
   }
 
   function showLists() {
+    searchController.current?.abort();
+    setIsSearching(false);
+    setIsLoadingMore(false);
     setView('lists');
     if (window.location.hash !== '#view=lists') window.history.pushState(null, '', `${window.location.pathname}${window.location.search}#view=lists`);
     window.scrollTo({ top: 0 });
