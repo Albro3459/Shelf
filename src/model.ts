@@ -30,6 +30,7 @@ export type EbrplClientOptions = {
   fetch?: typeof globalThis.fetch;
   timeoutMs?: number;
   userAgent?: string;
+  urls?: { landingUrl: string; searchUrl: string; directoryUrl: string };
 };
 export type EbrplClient = {
   getBranches(): Promise<Branch[]>;

@@ -66,7 +66,7 @@ Use `npm run convex -- dev --once --typecheck enable` to sync to cloud developme
 - `lists.mine({})`, `lists.get({ listId })`, `lists.containingRecord({ recordId })`: the active user's private lists, saved books, and memberships
 - `lists.create({ name })`, `lists.rename({ listId, name })`, `lists.remove({ listId })`, `lists.removeBook({ listId, bookId })`: private list management
 
-The frontend uses Convex's generated API and React client. `src/service.ts` handles input validation, physical filtering, and all-branch availability for the public and internal actions. Expected input and record errors return useful messages; upstream failures return a generic message. Google sign-in creates a Convex Auth account. Private list functions derive ownership from that account, and books use internal Convex IDs with separate catalog record and ISBN references. Scheduled monitoring will call internal functions using this same catalog code.
+The frontend uses Convex's generated API and React client. `src/service.ts` handles input validation, physical filtering, and all-branch availability for the public and internal actions. Expected input and record errors return useful messages; upstream failures return a generic message. Google sign-in creates a Convex Auth account. Private list functions derive ownership from that account, and books use internal Convex IDs with separate catalog record and ISBN references. Scheduled monitoring calls internal functions using this same catalog code.
 
 Only exact HTTPS `catalog.ebrpl.com/iguana/www.main.cls` record URLs are accepted. The backend extracts the record ID and never fetches a user-supplied URL. Bare 10- and 13-digit inputs are searched as ISBNs. Use the `1.` prefix to disambiguate a numeric catalog ID of those lengths.
 
@@ -90,6 +90,16 @@ Open `http://localhost:5173` for this configuration. `SITE_URL` must match the f
 Catalog search remains public. `users.current` returns only the authenticated user's basic profile and access status, using Convex Auth's canonical `users._id`. New accounts have pending access and notifications disabled. Repeat sign-ins preserve access and preferences. Lists require active access, as will future notification features. An administrator can approve an account with the internal `users.setAccess({ userId, accessStatus: 'active' })` mutation through the dashboard or CLI. See the [data model](docs/data-model.md).
 
 Setup follows the [Convex Auth guide](https://labs.convex.dev/auth/setup) and [Google provider configuration](https://labs.convex.dev/auth/config/oauth/google).
+
+## Availability alerts
+
+In My lists, turn on Email alerts and choose Branch alerts for a saved book. Select the branches and save. Branch choices apply across lists. Removing a book or deleting its list keeps its alerts, which can be stopped in the saved-alert summary.
+
+Convex checks watched books hourly from 8 AM through 5 PM Central, daily, with daylight saving time handled automatically. Newly enabled alerts reuse recent availability or request a fresh check. Users subscribing during an available period still receive an email. Unchanged availability sends no repeat, and catalog failures do not create a new available period.
+
+Set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, and `SES_FROM_EMAIL` in the ignored `.env.convex` and import them into the selected backend. `SITE_URL` supplies the manage-alerts link. Keep all credentials on the backend. The examples contain placeholders only.
+
+SES sends from an internal Convex action. Notifications track attempts and provider acceptance, without inbox delivery tracking. Ambiguous requests are never automatically retried. See the [data model](docs/data-model.md) for eligibility, deduplication, retry behavior, and limits. Initial book saves monitor their confirmed catalog record, with multiple editions supported once their records have been explicitly linked. Automatic edition discovery is not implemented.
 
 ## Catalog CLI and client
 

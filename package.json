@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@auth/core": "^0.41.3",
+    "@aws-sdk/client-sesv2": "^3.1154.0",
     "@convex-dev/auth": "^0.0.96",
     "@rgrove/parse-xml": "^5.0.0",
     "convex": "^1.47.0",

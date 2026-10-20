@@ -314,3 +314,32 @@ h1 { font: 400 clamp(48px, 5.9vw, 78px)/1.07 Georgia, "Times New Roman", serif; 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+.email-alerts { padding: 22px; margin-bottom: 32px; border: 1px solid var(--border); background: #f0f1e6; }
+.email-alert-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 12px; }
+.email-alert-heading h2 { font: 400 26px/1.3 Georgia, "Times New Roman", serif; }
+.email-alert-heading p { font-size: 12px; line-height: 1.7; color: var(--muted); margin-top: 6px; overflow-wrap: anywhere; }
+.alert-checkbox { display: flex; align-items: start; gap: 10px; font-size: 12px; line-height: 1.7; cursor: pointer; }
+.alert-checkbox input { flex-shrink: 0; width: 17px; height: 17px; margin: 2px 0 0; accent-color: var(--forest); }
+.email-switch { align-items: center; flex-shrink: 0; }
+.email-switch input { margin: 0; }
+.book-alerts { margin-top: 4px; }
+.book-alerts > .text-button { font-size: 11px; }
+.branch-alert-form { padding: 16px; margin-top: 12px; background: #eeeee3; border: 1px solid var(--border); }
+.branch-alert-form fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.branch-alert-form legend { font-size: 12px; line-height: 1.7; margin-bottom: 12px; }
+.branch-alert-choices { display: grid; gap: 10px; max-height: 280px; overflow-y: auto; padding: 2px 4px 4px 2px; }
+.branch-alert-form .list-note { margin: 12px 0; font-size: 11px; }
+.saved-alerts { margin-top: 12px; }
+.saved-alerts summary { font-size: 12px; cursor: pointer; width: fit-content; }
+.saved-alerts > p { margin-top: 12px; }
+.saved-alerts ul { list-style: none; padding: 0; margin: 0; }
+.saved-alerts li { display: flex; justify-content: space-between; align-items: start; gap: 18px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.saved-alerts li > div { display: grid; gap: 4px; min-width: 0; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.saved-alerts li span { color: var(--muted); font-size: 11px; }
+.saved-alerts .remove-book-button { white-space: nowrap; }
+@media (max-width: 480px) {
+  .email-alerts { padding: 18px; }
+  .email-alert-heading { gap: 12px; }
+  .branch-alert-form { padding: 12px; }
+}

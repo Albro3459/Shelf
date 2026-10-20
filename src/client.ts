@@ -34,6 +34,16 @@ export function createEbrplClient(options: EbrplClientOptions = {}): EbrplClient
   const timeoutMs = positiveInteger(options.timeoutMs ?? 20000, 'timeoutMs', 120000);
   const userAgent = options.userAgent ?? 'LibraryAvailabilityCatalog/0.1';
   if (!userAgent.trim() || /[\r\n]/.test(userAgent)) throw new CatalogError('Invalid User-Agent');
+  const urls = options.urls ?? { landingUrl: LANDING_URL, searchUrl: REQUEST_URL, directoryUrl: DIRECTORY_URL };
+  const destinations = Object.values(urls).map(value => new URL(value));
+  const origin = destinations[0]?.origin;
+  if (destinations.some(url => url.protocol !== 'https:' || url.username || url.password || url.port || url.origin !== origin)) {
+    throw new CatalogError('Catalog URLs must use one HTTPS origin');
+  }
+  function bookFromDocument(document: Parameters<typeof parseBook>[0]) {
+    const book = parseBook(document);
+    return { ...book, catalogUrl: `${urls.landingUrl.split('#')[0]}#recordId=${encodeURIComponent(book.recordId)}` };
+  }
   let directory: { branches: Branch[]; expiresAt: number } | undefined;
   let directoryRequest: Promise<Branch[]> | undefined;
 
@@ -62,7 +72,7 @@ export function createEbrplClient(options: EbrplClientOptions = {}): EbrplClient
 
   async function initialize(): Promise<Session> {
     const cookies = new Map<string, string>();
-    const html = await request(LANDING_URL, { method: 'GET' }, cookies);
+    const html = await request(urls.landingUrl, { method: 'GET' }, cookies);
     const sessionId = /Vfocus\.Settings\.sessionID\s*=\s*['"]([^'"\r\n]+)['"]/.exec(html)?.[1];
     if (!sessionId || !/^[A-Za-z0-9._-]+$/.test(sessionId) || cookies.size === 0) {
       throw new CatalogError('Catalog landing page did not provide an anonymous session');
@@ -79,9 +89,9 @@ export function createEbrplClient(options: EbrplClientOptions = {}): EbrplClient
           Namespace: '0', MetaBorrower: '', ASRProfile: '', SessionCMS: '', CspSessionId: session.sessionId, SIDTKN: session.sessionId,
           ...fields,
         });
-        const xml = await request(REQUEST_URL, {
+        const xml = await request(urls.searchUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded', Referer: LANDING_URL },
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', Referer: urls.landingUrl },
           body: form.toString(),
         }, session.cookies);
         if (!xml.trim() || /<html\b[\s\S]*(?:session\s+(?:expired|invalid)|(?:log|sign)[ -]?in)/i.test(xml)) {
@@ -101,7 +111,7 @@ export function createEbrplClient(options: EbrplClientOptions = {}): EbrplClient
       if (!directoryRequest) {
         directoryRequest = (async () => {
           const session = await initialize();
-          const text = await request(DIRECTORY_URL, { method: 'GET', headers: { Referer: LANDING_URL } }, session.cookies);
+          const text = await request(urls.directoryUrl, { method: 'GET', headers: { Referer: urls.landingUrl } }, session.cookies);
           const branches = parseDirectory(text);
           directory = { branches, expiresAt: Date.now() + 3600000 };
           return branches;
@@ -123,7 +133,7 @@ export function createEbrplClient(options: EbrplClientOptions = {}): EbrplClient
         SortDirection: '-1', WithoutRestrictions: 'Yes', Associations: 'Also',
         SummaryHoldings: DEFAULT_BRANCHES.join(','),
       });
-      return { total: response.total, books: response.documents.map(parseBook) };
+      return { total: response.total, books: response.documents.map(bookFromDocument) };
     },
     async getAvailability(recordId: string, branchCodes: readonly string[] = DEFAULT_BRANCHES) {
       if (!/^1\.[1-9]\d*$/.test(recordId)) throw new CatalogError('Record ID must have the form 1.1906252');
@@ -140,7 +150,7 @@ export function createEbrplClient(options: EbrplClientOptions = {}): EbrplClient
       if (response.total !== 1 || response.documents.length !== 1 || !document) {
         throw new CatalogError('Catalog lookup did not return exactly one record');
       }
-      const book = parseBook(document);
+      const book = bookFromDocument(document);
       if (book.recordId !== recordId) throw new CatalogError('Catalog returned a different record ID');
       if (book.isPhysicalBook !== true) throw new CatalogRecordError('This catalog record is not a confirmed physical book', 'not-physical');
       return { book, branches: parseBranches(document, selectedBranches), checkedAt: new Date().toISOString() };

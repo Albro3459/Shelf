@@ -1,4 +1,4 @@
-// Domain schema scaffold; auth, users, lists, and book identity are implemented in convex/schema.ts
+// Domain schema reference; runtime validators live in convex/schema.ts
 // Convex supplies _id and _creationTime; timestamps below are Unix milliseconds
 
 import type { GenericId } from 'convex/values';
@@ -33,6 +33,10 @@ export type ShelfBookDoc = {
   authors: string[];
   language?: string;
   updatedAt: number;
+  nextCheckAt?: number;
+  checkStartedAt?: number;
+  checkLeaseExpiresAt?: number;
+  lastCheckAt?: number;
 };
 
 export type ShelfBookIsbnDoc = {

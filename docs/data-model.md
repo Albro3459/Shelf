@@ -1,6 +1,6 @@
 # Shelf data model
 
-The [TypeScript scaffold](schema.ts) documents the agreed document shapes and is included in the project typecheck. `convex/schema.ts` implements Convex Auth's managed tables, extended `users`, `lists`, `listItems`, `books`, `bookIsbns`, `librarySystems`, and `catalogRecords`. Branches, subscriptions, observations, events, and notifications are planned. Application code uses the runtime schema's generated `Doc` and `Id` types.
+The [TypeScript scaffold](schema.ts) documents the agreed document shapes and is included in the project typecheck. `convex/schema.ts` implements all twelve application tables and Convex Auth's managed tables. Application code uses the runtime schema's generated `Doc` and `Id` types.
 
 Every document gets a generated Convex `_id` and `_creationTime`. Other timestamps are Unix milliseconds. ISBNs, provider account IDs, and library record IDs are external identifiers.
 
@@ -49,15 +49,15 @@ Use Convex Auth with Google sign-in. Its `users._id`, returned by `getAuthUserId
 
 `ShelfUserDoc` includes selected profile fields and app additions. Preserve the complete managed auth schema when extending it. Missing or pending `accessStatus` denies private account features. Treat a missing email preference as disabled.
 
-Google sign-in requires a verified Google email. New users start with pending access and email notifications disabled. Repeat sign-ins preserve those fields. Pending users can sign in and view their own basic account identity. All list functions require active access, as will future subscription functions. Disabled users cannot create new sessions or retrieve their account profile. `users.setAccess` is an internal mutation for account approval through the dashboard or authenticated CLI. There is no client-facing access approval function.
+Google sign-in requires a verified Google email. New users start with pending access and email notifications disabled. Repeat sign-ins preserve those fields. Pending users can sign in and view their own basic account identity. All list and subscription functions require active access. Disabled users cannot create new sessions or retrieve their account profile. `users.setAccess` is an internal mutation for account approval through the dashboard or authenticated CLI. There is no client-facing access approval function.
 
 A user can own multiple named lists. Each list contains a given book once. Books are shared across users, while lists and alert choices are private. Saving a book does not enable an alert by itself. Removing a list entry does not disable an independently selected subscription.
 
-The initial UI supports creating, renaming, and deleting lists, saving catalog books, and removing saved books. List names are 1–80 characters, with up to 50 lists per account and 200 books per list. Private queries return no data for inactive accounts or another user's list. Mutations resolve the authenticated user and check the parent list's ownership. Deleting a list removes its memberships atomically and preserves shared books and catalog metadata.
+The UI supports creating, renaming, and deleting lists, saving catalog books, removing saved books, selecting branch alerts, and pausing account-wide email. List names are 1–80 characters, with up to 50 lists per account and 200 books per list. Private queries return no data for inactive accounts or another user's list. Mutations resolve the authenticated user and check the parent list's ownership. Deleting a list removes its memberships atomically and preserves shared books and catalog metadata.
 
 `catalog.saveToList` accepts only a list ID and source record ID. It checks ownership before fetching a full physical catalog record, then calls an internal mutation that rechecks access and ownership before saving. Catalog metadata cannot be supplied by the browser. External record and list-membership lookup and insertion happen in the same transaction, so retries and concurrent saves reuse the same book and membership.
 
-Each subscription selects one user, book, and branch. Email is the only initial channel, so subscription `isEnabled` controls its alerts and the user's `emailNotificationsEnabled` is the account-wide switch. Enforce one subscription per user/book/branch even when the book appears in several lists. Disable subscriptions in place so re-enabling one can reuse its notification history. A standalone library is one system with one branch.
+Each subscription selects one user, book, and branch. Email is the only initial channel, so subscription `isEnabled` controls its alerts and the user's `emailNotificationsEnabled` is the account-wide switch. Enforce one subscription per user/book/branch even when the book appears in several lists. Disable subscriptions in place so re-enabling one can reuse its notification history. A standalone library is one system with one branch. Accounts can retain up to 100 distinct book/branch choices, including disabled choices so their send history remains intact. The saved-alert summary lets users stop alerts after removing a book or deleting its list.
 
 The browser calls Convex functions through the SDK. Backend functions enforce ownership using the authenticated user. Validate list ownership through its parent list, and never trust a caller-supplied owner ID. Notification recipients must have active access, a verified account-owned email, and enabled account and subscription preferences.
 
@@ -81,11 +81,11 @@ Enter actual configuration values directly into the backend after deployment. Ke
 
 Only admin/internal functions may edit catalog configuration. Validate fetch destinations, including redirects, and prevent users from supplying arbitrary fetch URLs. Return only the public catalog links needed by the frontend. Adapter request and parsing logic stays in TypeScript, while URL values come from backend configuration.
 
-The existing catalog client still contains URL constants. The first saved book initializes the current system's backend configuration from those existing adapter values, without accepting configuration from the browser. Saved catalog links use that configuration. Replacing the client's constants and adapting fetch destination validation remains separate implementation work. No actual URL values are added to committed seed data.
+The existing catalog client still contains URL constants. The first saved book initializes the current system's backend configuration from those existing adapter values, without accepting configuration from the browser. Saved catalog links use that configuration. Monitoring and branch discovery read this stored configuration. The client accepts only one HTTPS origin with no URL credentials or custom ports, and rejects redirects. Public search and save still use the existing default adapter configuration. Moving those defaults entirely into backend configuration remains separate work. No actual URL values are added to committed seed data.
 
 ## Observations and available periods
 
-Schedule checks every 30 minutes from 8 AM through 5 PM daily in `America/Chicago`, respecting daylight saving time. Scheduler implementation is deferred. Poll each distinct catalog record once and share its observations across subscribers. Record attempts and sanitized errors separately from successful observations. Unknown, missing, and failed responses do not establish unavailability. Preserve the last known state through errors and reject stale check results.
+Convex cron triggers hourly and checks the `America/Chicago` hour before queueing due books. Checks run at 8 AM, 9 AM, and each hour through 5 PM daily, respecting daylight saving time. Enabling alerts reuses a confirmed observation up to 65 minutes old or requests a fresh check, including outside scheduled hours. Saving a book alone never starts polling. Poll each distinct catalog record once and share its observations across subscribers. Record attempts and sanitized errors separately from successful observations. Unknown, missing, and failed responses do not establish unavailability. Preserve the last known state through errors and reject stale check results.
 
 Aggregate all confirmed physical records for each book/branch pair:
 
@@ -95,7 +95,7 @@ Aggregate all confirmed physical records for each book/branch pair:
 
 Zero matching records yields unknown. `not-held` requires explicit confirmation from the catalog that the record is not held at that branch. Missing holdings remain unknown. The current parser reserves `not-held` and does not emit it yet.
 
-Create an `availabilityEvents` document when availability is first confirmed with no open event. Its ID identifies that available period. Leave it open through unchanged availability and unknown results. Set `endedAt` only after confirmed unavailability. If availability returns later, create a new event. Check the latest event and open or close it in the same mutation so concurrent checks cannot create duplicate periods. Aggregate a coherent check batch before updating periods so partial or stale results cannot manufacture transitions.
+Create an `availabilityEvents` document when availability is first confirmed with no open event. Its ID identifies that available period. Leave it open through unchanged availability and unknown results. Set `endedAt` only after confirmed unavailability. If availability returns later, create a new event. Check the latest event and open or close it in the same mutation so concurrent checks cannot create duplicate periods. Aggregate a coherent check batch before updating periods so partial or stale results cannot manufacture transitions. Books carry the next due time, check start token, ten-minute lease, and latest committed batch timestamp. Observations only count toward the current result when their timestamp matches that batch. A replacement worker changes the start token so older responses cannot overwrite it. Checks are limited to 20 confirmed records per book and fetch at most four records concurrently. Larger groups remain unknown until that limit is deliberately raised.
 
 An event belongs to the shared book/branch pair and contains no per-user send status. It can prompt notifications both when it starts and when a new person subscribes during the period.
 
@@ -120,7 +120,7 @@ Before sending, recheck account access, email verification, preferences, subscri
 - A `sending` row keeps its in-flight state and records the eventual result. Disabling alerts prevents new attempts but cannot recall an email request already in flight
 - `submitted` and `uncertain` rows retain their outcomes and are never automatically requeued for the same period
 
-For example, definite rejection → retry scheduled on the failed row → alerts disabled → alerts re-enabled resumes only a safe retry with remaining budget. Classify retry eligibility from stable, sanitized `lastErrorCode` values. Unknown outcomes are `uncertain`, never a retryable rejection. Closed periods cannot produce further attempts, regardless of the notification's status.
+For example, definite rejection → retry scheduled on the failed row → alerts disabled → alerts re-enabled resumes only a safe retry with remaining budget. SES throttling and limit rejections can retry twice, after one and five minutes. Other definite rejections remain failed. Classify retry eligibility from stable, sanitized `lastErrorCode` values. Unknown outcomes are `uncertain`, never a retryable rejection. Closed periods cannot produce further attempts, regardless of the notification's status.
 
 | Status | Meaning |
 | --- | --- |
@@ -131,7 +131,7 @@ For example, definite rejection → retry scheduled on the failed row → alerts
 | `uncertain` | The request may have been accepted, including a worker lost during sending |
 | `cancelled` | An unattempted row that is no longer eligible |
 
-Claim work transactionally, increment `attemptCount`, and set `lastAttemptAt` and a lease. Guard worker updates with the claimed attempt number so an older attempt cannot overwrite a newer result. A lost sending lease becomes uncertain. Do not automatically retry ambiguous outcomes. This tracks attempts and provider acceptance, without inbox delivery tracking or an exactly-once email guarantee.
+Claim work transactionally, increment `attemptCount`, and set `lastAttemptAt` and a two-minute lease. The SES SDK makes one request with no SDK retries and a 30-second timeout. A five-minute recovery job marks expired sending leases uncertain and reschedules due pending or safely retryable failed rows. Guard worker updates with the claimed attempt number so an older attempt cannot overwrite a newer result. A lost sending lease becomes uncertain. Do not automatically retry ambiguous outcomes. This tracks attempts and provider acceptance, without inbox delivery tracking or an exactly-once email guarantee.
 
 ## Indexes and mutation invariants
 
@@ -139,6 +139,7 @@ Implement these indexes alongside runtime validators:
 
 | Table | Index fields |
 | --- | --- |
+| `books` | nextCheckAt |
 | `lists` | userId |
 | `listItems` | listId/bookId, bookId |
 | `bookIsbns` | isbn13, bookId |
@@ -148,7 +149,7 @@ Implement these indexes alongside runtime validators:
 | `subscriptions` | userId/bookId/branchId, bookId/branchId/isEnabled |
 | `availability` | catalogRecordId/branchId |
 | `availabilityEvents` | bookId/branchId/startedAt |
-| `notifications` | userId/bookId/branchId/availabilityEventId/channel, subscriptionId, status/nextAttemptAt, status/leaseExpiresAt |
+| `notifications` | userId/bookId/branchId/availabilityEventId/channel, subscriptionId/status, status/nextAttemptAt, status/leaseExpiresAt |
 
 Indexes do not enforce uniqueness. Perform lookup and insert/update together in a mutation for list membership, ISBN ownership, external keys, subscriptions, observations, available periods, and notification deduplication. Validate referenced documents, ownership, and library-system consistency. Typed IDs alone do not enforce those relationships.
 
@@ -156,7 +157,7 @@ Retention must preserve open periods and the notification keys needed to prevent
 
 ## Deployment boundary
 
-The static React frontend will use GitHub Pages over HTTPS. Hash navigation supports catalog records and the `#view=lists` page. Convex hosts Google authentication, catalog actions, and private lists. Schedules and email actions are planned. Configure Vite's base and asset URLs for the hosting path, build with the backend's public `VITE_CONVEX_URL`, and keep provider secrets on the backend. Hosting is not configured yet.
+The static React frontend will use GitHub Pages over HTTPS. Hash navigation supports catalog records and the `#view=lists` page. Convex hosts Google authentication, catalog actions, private lists, hourly monitoring, and SES email actions. Configure Vite's base and asset URLs for the hosting path, build with the backend's public `VITE_CONVEX_URL`, and keep provider secrets on the backend. Hosting is not configured yet.
 
 ## Sources
 
