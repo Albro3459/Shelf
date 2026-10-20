@@ -9,6 +9,7 @@
   "exports": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
+    "convex": "convex",
     "catalog": "tsx src/cli.ts",
     "dev": "concurrently --kill-others -n api,web npm:dev:api npm:dev:web",
     "dev:api": "tsx watch server/index.ts",
@@ -16,11 +17,12 @@
     "build": "npm run typecheck && tsc -p tsconfig.json && tsc -p tsconfig.server.json && vite build",
     "start": "node dist/api/server/index.js",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.test.json && tsc -p tsconfig.core.json && tsc -p tsconfig.web.json && tsc -p tsconfig.tools.json",
+    "typecheck": "tsc -p tsconfig.test.json && tsc -p tsconfig.core.json && tsc -p tsconfig.web.json && tsc -p tsconfig.tools.json && tsc -p convex/tsconfig.json",
     "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
     "@rgrove/parse-xml": "^5.0.0",
+    "convex": "^1.47.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

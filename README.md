@@ -27,6 +27,27 @@ npm run preview
 
 The preview serves [port 4173](http://localhost:4173) and proxies to the API on port 5174. The static frontend build is in `dist/web`, the compiled Node entry is `dist/api/server/index.js`, and the catalog library keeps its `dist/index.js` export. `PORT` can change the API listener, but update the proxy target in `vite.config.ts` if doing so locally. Neither dev nor preview is a public deployment.
 
+## Convex development
+
+Cloud catalog access was verified on a development deployment with the existing client in Convex's default runtime. The internal `catalog:checkAvailability` action returns availability across the live branch directory. It does not save observations or send notifications. The React POC still uses the local Node API.
+
+The Convex CLI is included in the project dependencies. It is also installed globally on this machine. On another machine, install dependencies and connect to the existing project:
+
+```sh
+npm install
+npm run convex -- login
+npm run convex -- dev --configure existing --team YOUR_TEAM --project YOUR_PROJECT --dev-deployment cloud --once
+```
+
+The CLI saves deployment configuration in the ignored `.env.local`. To publish backend changes to the configured development deployment and run the cloud check:
+
+```sh
+npm run convex -- dev --once --typecheck enable
+npm run convex -- run catalog:checkAvailability '{"recordId":"1.1906252"}'
+```
+
+Run `npm run convex -- dev` to sync backend changes continuously during development. Generated bindings in `convex/_generated` belong in Git. The production build also typechecks Convex functions.
+
 ## API
 
 - `GET /api/search?q=...&startRecord=1&limit=20`: physical search results with the next catalog offset, or a resolved record ID for direct input
@@ -80,4 +101,4 @@ npm test
 
 The core typecheck excludes Node ambient types. Separate configurations check the frontend, server, tests, and Vite setup. Targeted tests use recorded, sanitized XML and mocked HTTP responses for catalog parsing, input resolution, directory discovery, physical pagination, all-branch joins, and safe HTTP errors. See [fixture notes](test/fixtures/README.md) for the observed protocol and its limits.
 
-The core remains suitable for a future Convex action using web APIs. The Node API can also be adapted to another cloud-function host. Deployment, database/auth provider integration, scheduled checks, and email notifications remain future work.
+The core now runs in a deployed Convex action using web APIs. The Node API can also be adapted to another cloud-function host. Frontend hosting, database/auth integration, scheduled checks, and email notifications remain future work.
