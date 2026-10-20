@@ -1,0 +1,25 @@
+{
+  "name": "ebrpl-catalog-client",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "type": "module",
+  "exports": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "catalog": "tsx src/cli.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json && tsc -p tsconfig.core.json",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@rgrove/parse-xml": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

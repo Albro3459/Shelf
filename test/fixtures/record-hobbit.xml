@@ -1,0 +1,95 @@
+<searchRetrieveResponse>
+  <version>2019.02.12</version>
+  <RelevancySort>0</RelevancySort>
+  <numberOfRecords>1</numberOfRecords>
+  <records>
+    <record>
+      <recordPacking>xml</recordPacking>
+      <recordData>
+        <BibDocument>
+          <Id>1.611172</Id>
+          <BibData>
+            <Element>
+              <Label>FullAuthorInverted</Label>
+              <Data>#!#.495.683172***1*Authorbib$^Falconer, Daniel^Falconer, Daniel.#!# #!#.495.683174***1*Authorbib$^Hennah, Dan^Hennah, Dan.#!# #!#.495.1158913***1*Authorbib$^Taylor, Richard, 1946-^Taylor, Richard,#!# 1946-#!#.495.655506***1*Authorbib$^Tolkien, J. R. R. (John Ronald Reuel), 1892-1973. Hobbit^Tolkien, J. R. R.#!# (John Ronald Reuel),1892-1973.</Data>
+            </Element>
+            <Element>
+              <Label>FullAuthorMusic</Label>
+              <Data>#!#.495.683172***1*Authorbib$^Falconer, Daniel^Falconer, Daniel.#!# #!#.495.683174***1*Authorbib$^Hennah, Dan^Hennah, Dan.#!# #!#.495.1158913***1*Authorbib$^Taylor, Richard, 1946-^Taylor, Richard,#!# 1946-#!#.495.655506***1*Authorbib$^Tolkien, J. R. R. (John Ronald Reuel), 1892-1973. Hobbit^Tolkien, J. R. R.#!# (John Ronald Reuel),1892-1973.</Data>
+            </Element>
+            <Element>
+              <Label>FullAuthor</Label>
+              <Data>#!#.495.683172***1*Authorbib$^Falconer, Daniel^Daniel Falconer#!# #!#.495.683174***1*Authorbib$^Hennah, Dan^Dan Hennah     #!#   #!#.495.1158913***1*Authorbib$^Taylor, Richard, 1946-^Richard Taylor,     #!# 1946-,  #!#.495.655506***1*Authorbib$^Tolkien, J. R. R. (John Ronald Reuel), 1892-1973. Hobbit^J. R. R. Tolkien     #!# 1892-1973,(John Ronald Reuel),  Hobbit.&lt;br /&gt;</Data>
+            </Element>
+            <Element>
+              <Label>FullContains</Label>
+              <Data>In a hole in the ground... -- An unexpected party -- Dwarves of yore -- Still in business -- Wilderland -- Roast mutton -- A short rest -- Over hill -- ...And under hill -- Riddles in the dark -- Out of the frying pan into the fire -- About the peninsula.</Data>
+            </Element>
+            <Element>
+              <Label>FullImprint</Label>
+              <Data>New York, N.Y. : Harper Design, 2012. </Data>
+            </Element>
+            <Element>
+              <Label>FullDescription</Label>
+              <Data>198 pages :  illustrations (chiefly color), map ;  25 x 32 cm +  1 map  </Data>
+            </Element>
+            <Element>
+              <Label>FullKeyword</Label>
+              <Data>#!#.495.683173***1*Subjectbib$^Tolkien, J. R. R. (John Ronald Reuel), 1892-1973. Hobbit -- Characters^&lt;br /&gt;Tolkien, J. R. R.#!#  (John Ronald Reuel), Hobbit Characters.#!#.492.54320***1*Subjectbib$^Hobbit, an unexpected journey (Motion picture)^ Hobbit, an unexpected journey (Motion picture)#!# #!#.499.347959***1*Subjectbib$^Middle Earth (Imaginary place)^ Middle Earth (Imaginary place)#!#  ; #!#.495.1019272***1*Subjectbib$^Baggins, Bilbo^&lt;br /&gt;Baggins, Bilbo.#!# #!#.499.573059***1*Subjectbib$^Hobbits (Fictitious characters)^ Hobbits (Fictitious characters)#!# </Data>
+            </Element>
+            <Element>
+              <Label>FullMainTitle</Label>
+              <Data>The hobbit :</Data>
+            </Element>
+            <Element>
+              <Label>FullNote</Label>
+              <Data>Includes fold-out map and fold-out of Bilbo's burglar contract (attached to book).  </Data>
+            </Element>
+            <Element>
+              <Label>FullNumber</Label>
+              <Data>0062200909 : 9780062200907 (hc) :</Data>
+            </Element>
+            <Element>
+              <Label>FullTitleAll</Label>
+              <Data>The hobbit :an unexpected journey : chronicles : art &amp; design / --#!#1*Fulltitle^hobbit^Hobbit :#!##!#1*Titlebib^an^an#!# #!#1*Titlebib^unexpected^unexpected#!# #!#1*Titlebib^journey^journey#!# : #!#1*Titlebib^chronicles^chronicles#!#</Data>
+            </Element>
+            <Element>
+              <Label>FullTitle</Label>
+              <Data>an unexpected journey : chronicles : art &amp; design / --#!#1*Fulltitle^hobbit^Hobbit :#!# #!#1*Titlebib^an^an#!# #!#1*Titlebib^unexpected^unexpected#!# #!#1*Titlebib^journey^journey#!# : #!#1*Titlebib^chronicles^chronicles#!#</Data>
+            </Element>
+            <Element>
+              <Label>FullAvailability</Label>
+              <Data>&lt;img src=css/themes/ebrpl/images/ok.gif border=0 alt="Items available"&gt;</Data>
+            </Element>
+            <Element>
+              <Label>FullCoverA</Label>
+              <Data>https://secure.syndetics.com/index.aspx?isbn=9780062200907/mc.gif&amp;client=ebrpl&amp;UPC=&amp;OCLC=(OCoLC)794207310&amp;@@@https://secure.syndetics.com/index.aspx?isbn=9780062200907:/index.html&amp;client=ebrpl&amp;UPC=&amp;OCLC=(OCoLC)794207310&amp;!!!###!!!MATTYPE=NONFICA!!!###!!!BIBTYPE=am!!!###!!!PUBTYPE=1</Data>
+            </Element>
+            <Element>
+              <Label>FullSubject</Label>
+              <Data>#!#.495.683173***1*Subjectbib$^Tolkien, J. R. R. (John Ronald Reuel), 1892-1973. Hobbit -- Characters^&lt;br /&gt;Tolkien, J. R. R.#!# 1892-1973.(John Ronald Reuel),--HobbitCharacters.#!#.492.54320***1*Subjectbib$^Hobbit, an unexpected journey (Motion picture)^Hobbit, an unexpected journey (Motion picture)#!# #!#.499.347959***1*Subjectbib$^Middle Earth (Imaginary place)^&lt;br&gt;Middle Earth (Imaginary place)#!# #!#.495.1019272***1*Subjectbib$^Baggins, Bilbo^&lt;br /&gt;Baggins, Bilbo.#!# #!#.499.573059***1*Subjectbib$^Hobbits (Fictitious characters)^&lt;br&gt;Hobbits (Fictitious characters)#!# </Data>
+            </Element>
+          </BibData>
+          <Ebook>0</Ebook>
+          <Reservable>1</Reservable>
+          <OkForAcquisition>0</OkForAcquisition>
+          <ASRReservable>0</ASRReservable>
+          <DocType>Book</DocType>
+          <DisplayMaterialType>NONFICA</DisplayMaterialType>
+          <SerialsRecord>0</SerialsRecord>
+          <HoldingsSummary>
+            <ShelfmarkData>
+              <Shelfmark>MAIN LIBRARY : 791.4372 F182h</Shelfmark>
+              <ShelfLocWording>MAIN LIBRARY</ShelfLocWording>
+              <Scope>EBRPL/EBR</Scope>
+              <LocationWording>MAIN LIBRARY</LocationWording>
+              <StatusSummary>&lt;img src=css/themes/ebrpl/images/ok.gif border=0 alt="Items available"&gt;</StatusSummary>
+              <Available>1</Available>
+            </ShelfmarkData>
+          </HoldingsSummary>
+        </BibDocument>
+      </recordData>
+      <recordPosition>-1</recordPosition>
+    </record>
+  </records>
+</searchRetrieveResponse>

@@ -1,0 +1,119 @@
+<searchRetrieveResponse>
+  <version>2019.02.12</version>
+  <RelevancySort>0</RelevancySort>
+  <numberOfRecords>1</numberOfRecords>
+  <records>
+    <record>
+      <recordPacking>xml</recordPacking>
+      <recordData>
+        <BibDocument>
+          <Id>1.1906252</Id>
+          <BibData>
+            <Element>
+              <Label>FullAuthorInverted</Label>
+              <Data>#!#.495.1380790***1*Authorbib$^Silver, Josh, 1989-^Silver, Josh,#!# 1989-</Data>
+            </Element>
+            <Element>
+              <Label>FullAuthorMusic</Label>
+              <Data>#!#.495.1380790***1*Authorbib$^Silver, Josh, 1989-^Silver, Josh,#!# 1989-</Data>
+            </Element>
+            <Element>
+              <Label>FullAuthor</Label>
+              <Data>#!#.495.1380790***1*Authorbib$^Silver, Josh, 1989-^Josh Silver,#!# 1989-</Data>
+            </Element>
+            <Element>
+              <Label>FullEdition</Label>
+              <Data>First edition.</Data>
+            </Element>
+            <Element>
+              <Label>FullGenre</Label>
+              <Data>#!#.496.10193***1*Subjectbib$^Thrillers (Fiction)^Thrillers (Fiction)#!# </Data>
+            </Element>
+            <Element>
+              <Label>FullImprint</Label>
+              <Data>New York : Crooked Lane, 2026. ©2026 </Data>
+            </Element>
+            <Element>
+              <Label>FullDescription</Label>
+              <Data>372 pages ;  22 cm  </Data>
+            </Element>
+            <Element>
+              <Label>FullKeyword</Label>
+              <Data>#!#.499.326752***1*Subjectbib$^Women authors -- Fiction^ Women authorsFiction.#!# #!#.496.10193***1*Subjectbib$^Thrillers (Fiction)^ Thrillers (Fiction)#!#  ; #!#.499.291186***1*Subjectbib$^Gay men -- Fiction^ Gay menFiction.#!#  ; #!#.499.297199***1*Subjectbib$^Homeless persons -- Fiction^ Homeless personsFiction.#!#  ; #!#.499.348923***1*Subjectbib$^Secrecy -- Fiction^ SecrecyFiction.#!# </Data>
+            </Element>
+            <Element>
+              <Label>FullMainTitle</Label>
+              <Data>Fruit fly :</Data>
+            </Element>
+            <Element>
+              <Label>FullNumber</Label>
+              <Data>9798892426367 (hardcover) : : 9798892426374 (softcover)</Data>
+            </Element>
+            <Element>
+              <Label>FullTitleAll</Label>
+              <Data>Fruit fly :a novel /</Data>
+            </Element>
+            <Element>
+              <Label>FullTitle</Label>
+              <Data>a novel /</Data>
+            </Element>
+            <Element>
+              <Label>FullAvailability</Label>
+              <Data> &lt;img src=css/themes/ebrpl/images/notok.gif border=0 alt="No items currently available. If this is an electronic resource, such as OverDrive, then check the source catalog for availability status."&gt;</Data>
+            </Element>
+            <Element>
+              <Label>FullCoverA</Label>
+              <Data>https://secure.syndetics.com/index.aspx?isbn=9798892426367/mc.gif&amp;client=ebrpl&amp;UPC=&amp;OCLC=(OCoLC)1552044268&amp;@@@https://secure.syndetics.com/index.aspx?isbn=9798892426367:/index.html&amp;client=ebrpl&amp;UPC=&amp;OCLC=(OCoLC)1552044268&amp;!!!###!!!MATTYPE=FICA!!!###!!!BIBTYPE=am!!!###!!!PUBTYPE=1</Data>
+            </Element>
+            <Element>
+              <Label>FullSubject</Label>
+              <Data>#!#.499.326752***1*Subjectbib$^Women authors -- Fiction^&lt;br&gt;Women authors--Fiction.#!# #!#.499.291186***1*Subjectbib$^Gay men -- Fiction^&lt;br&gt;Gay men--Fiction.#!# #!#.499.297199***1*Subjectbib$^Homeless persons -- Fiction^&lt;br&gt;Homeless persons--Fiction.#!# #!#.499.348923***1*Subjectbib$^Secrecy -- Fiction^&lt;br&gt;Secrecy--Fiction.#!# </Data>
+            </Element>
+          </BibData>
+          <Ebook>0</Ebook>
+          <Reservable>1</Reservable>
+          <OkForAcquisition>0</OkForAcquisition>
+          <ASRReservable>0</ASRReservable>
+          <DocType>Book</DocType>
+          <DisplayMaterialType>FICA</DisplayMaterialType>
+          <SerialsRecord>0</SerialsRecord>
+          <HoldingsSummary>
+            <ShelfmarkData>
+              <Shelfmark>BLUEBONNET REGIONAL : Fic Silver, Josh</Shelfmark>
+              <ShelfLocWording>BLUEBONNET REGIONAL</ShelfLocWording>
+              <Scope>EBRPL/BBR</Scope>
+              <LocationWording>BLUEBONNET REGIONAL</LocationWording>
+              <StatusSummary> &lt;img src=css/themes/ebrpl/images/notok.gif border=0 alt="No items currently available. If this is an electronic resource, such as OverDrive, then check the source catalog for availability status."&gt;</StatusSummary>
+              <Available>0</Available>
+            </ShelfmarkData>
+            <ShelfmarkData>
+              <Shelfmark>JONES CREEK REGIONAL : Fic Silver, Josh</Shelfmark>
+              <ShelfLocWording>JONES CREEK REGIONAL</ShelfLocWording>
+              <Scope>EBRPL/JCR</Scope>
+              <LocationWording>JONES CREEK REGIONAL</LocationWording>
+              <StatusSummary> &lt;img src=css/themes/ebrpl/images/notok.gif border=0 alt="No items currently available. If this is an electronic resource, such as OverDrive, then check the source catalog for availability status."&gt;</StatusSummary>
+              <Available>0</Available>
+            </ShelfmarkData>
+            <ShelfmarkData>
+              <Shelfmark>SOUTH BRANCH : Fic Silver, Josh</Shelfmark>
+              <ShelfLocWording>SOUTH BRANCH</ShelfLocWording>
+              <Scope>EBRPL/SOU</Scope>
+              <LocationWording>SOUTH BRANCH</LocationWording>
+              <StatusSummary> &lt;img src=css/themes/ebrpl/images/notok.gif border=0 alt="No items currently available. If this is an electronic resource, such as OverDrive, then check the source catalog for availability status."&gt;</StatusSummary>
+              <Available>0</Available>
+            </ShelfmarkData>
+            <ShelfmarkData>
+              <Shelfmark>MAIN LIBRARY : Fic Silver, Josh</Shelfmark>
+              <ShelfLocWording>MAIN LIBRARY</ShelfLocWording>
+              <Scope>EBRPL/EBR</Scope>
+              <LocationWording>MAIN LIBRARY</LocationWording>
+              <StatusSummary> &lt;img src=css/themes/ebrpl/images/notok.gif border=0 alt="No items currently available. If this is an electronic resource, such as OverDrive, then check the source catalog for availability status."&gt;</StatusSummary>
+              <Available>0</Available>
+            </ShelfmarkData>
+          </HoldingsSummary>
+        </BibDocument>
+      </recordData>
+      <recordPosition>-1</recordPosition>
+    </record>
+  </records>
+</searchRetrieveResponse>
