@@ -212,7 +212,7 @@ export function App() {
   const checkedLabel = checkedDate && !Number.isNaN(checkedDate.getTime()) ? checkedDate.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : null;
 
   return <div className="app-shell">
-    <header className="site-header"><a className="brand" href={window.location.pathname} aria-label="Shelf home"><img className="brand-icon" src="/shelf.svg" width="45" height="45" alt=""/><span>Shelf<span className="brand-dot">.</span></span></a><div className="header-actions"><div className="library-name"><span className="library-mark" aria-hidden="true"/>East Baton Rouge<span className="library-name-second">Parish Library</span></div><AccountControls/></div></header>
+    <header className="site-header"><a className="brand" href={window.location.pathname} aria-label="Shelf home"><img className="brand-icon" src="/shelf.svg" width="48" height="48" alt=""/><span>Shelf<span className="brand-dot">.</span></span></a><div className="header-actions"><div className="library-name"><span className="library-mark" aria-hidden="true"/>East Baton Rouge<span className="library-name-second">Parish Library</span></div><AccountControls/></div></header>
     <main>
       <section className={`hero${hasWorkspace ? ' compact' : ''}`} aria-labelledby="page-title">
         <div className="eyebrow"><span/>YOUR NEXT READ, NEARBY</div>

@@ -23,15 +23,14 @@
       <stop stop-color="#F0E6CC"/>
       <stop offset="1" stop-color="#FFFAE9"/>
     </linearGradient>
-    <filter id="shadow" x="1" y="9" width="62" height="49" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="2" stdDeviation="1.8" flood-color="#3D422C" flood-opacity="0.24"/>
-    </filter>
   </defs>
 
   <path fill="url(#background)" d="M0 0h64v64H0z"/>
   <path fill="url(#light)" d="M0 0h64v64H0z"/>
 
-  <g filter="url(#shadow)">
+  <path fill="#3D422C" fill-opacity="0.16" transform="translate(0 2)" d="m9 16 16 3 7 4 7-4 16-3v29l-16 3-7 4-7-4-16-3z"/>
+
+  <g>
     <path fill="url(#cover)" d="m9 16 16 3 7 4 7-4 16-3v29l-16 3-7 4-7-4-16-3z"/>
     <path fill="#15382E" fill-opacity="0.4" d="m32 23 2-1v27l-2 3-2-3V22z"/>
     <path fill="#B5B394" d="m12 39 12 2 6 3v3l-6-3-12-2zm22 5 6-3 12-2v3l-12 2-6 3z"/>
