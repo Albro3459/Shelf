@@ -6,6 +6,7 @@ import { api } from '../../convex/_generated/api';
 import type { AvailabilityResponse } from '../../src/api-model';
 import type { AvailabilityStatus, Book, BranchObservation } from '../../src/model';
 import { AccountControls } from './AccountControls';
+import { BookCover, BookIcon } from './BookCover';
 import { MyLists, SaveBookControl, useShelfAccount } from './lists';
 
 const examples = [
@@ -26,18 +27,11 @@ function errorMessage(error: unknown): string {
     'The library catalog could not complete this request. Please try again.';
 }
 
-function BookIcon({ small = false }: { small?: boolean }) {
-  return <svg width={small ? 19 : 26} height={small ? 19 : 26} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 6.5C9 4.4 5.5 4 2.5 4.5v14c3-.5 6.5-.1 9.5 2 3-2.1 6.5-2.5 9.5-2v-14C18.5 4 15 4.4 12 6.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M12 6.5v14" stroke="currentColor" strokeWidth="1.5"/></svg>;
-}
 
 function Arrow({ external = false }: { external?: boolean }) {
   return <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d={external ? 'M5 15 15 5M5 5h10v10' : 'M4 10h12m-5-5 5 5-5 5'} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 }
 
-function Cover({ book, large = false }: { book: Book; large?: boolean }) {
-  const palette = [...book.recordId].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 3;
-  return <div className={`book-cover palette-${palette}${large ? ' large-cover' : ''}`} aria-hidden="true"><div className="cover-rule"/><span className="cover-title">{book.title}</span><div className="cover-bottom"><BookIcon small/><span>{book.authors[0] || 'EBRPL collection'}</span></div></div>;
-}
 
 function ErrorMessage({ message, retry }: { message: string; retry: () => void }) {
   return <div className="error-message" role="alert"><strong>We couldn’t reach that shelf.</strong><p>{message}</p><button className="text-button" onClick={retry}>Try again <Arrow/></button></div>;
@@ -48,14 +42,14 @@ function cleanStatus(value: string): string {
 }
 
 function StatusIcon({ status }: { status: AvailabilityStatus }) {
-  return <span aria-hidden="true"><svg width="8" height="8" viewBox="0 0 12 12" fill="none">{status === 'available' ? <path d="m2 6 2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/> : status === 'unavailable' ? <path d="M3 6h6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/> : <circle cx="6" cy="6" r="1.25" fill="currentColor"/>}</svg></span>;
+  return <span className="status-icon" aria-hidden="true"><svg width="8" height="8" viewBox="0 0 12 12" fill="none">{status === 'available' ? <path d="m2 6 2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/> : status === 'unavailable' ? <path d="M3 6h6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/> : <circle cx="6" cy="6" r="1.25" fill="currentColor"/>}</svg></span>;
 }
 
 function BranchRow({ branch }: { branch: BranchObservation }) {
   const descriptions = [...new Set(branch.rawStatuses.map(cleanStatus).filter(Boolean))];
   const hasHoldings = branch.rawStatuses.length > 0 || branch.rawAvailableFlags.length > 0;
   const label = branch.status === 'unknown' && !hasHoldings ? 'No holdings reported' : statusLabels[branch.status];
-  return <li className="branch-row"><div className="branch-copy"><strong>{branch.branchName || branch.branchCode}</strong>{descriptions.length > 0 && <span>{descriptions.join(' · ')}</span>}</div><span className={`branch-status ${branch.status}`}><StatusIcon status={branch.status}/>{label}</span></li>;
+  return <li className="branch-row"><div className="branch-copy"><strong>{branch.branchName || branch.branchCode}</strong>{descriptions.length > 0 && <span>{descriptions.join(' · ')}</span>}</div><span className={`branch-status ${branch.status}`}><StatusIcon status={branch.status}/><span>{label === 'No holdings reported' ? <>No holdings{' '}<br className="holdings-break"/>reported</> : label}</span></span></li>;
 }
 
 function recordFromLocation(): string | null {
@@ -237,9 +231,7 @@ export function App() {
     <main>
       {view === 'lists' ? <MyLists key={account.user?._id ?? 'signed-out'} onOpenBook={openBook} onFindBooks={showCatalog}/> : <>
       <section className={`hero${hasWorkspace ? ' compact' : ''}`} aria-labelledby="page-title">
-        <div className="eyebrow"><span/>YOUR NEXT READ, NEARBY</div>
-        <h1 id="page-title">A good book.{' '}<br/>A <em>nearby</em> shelf.</h1>
-        <p className="hero-description">Find a physical book in the EBRPL collection.<br className="desktop-break"/> See which branches have a copy available.</p>
+        <h1 id="page-title" className="hero-description">Find a book in the EBRPL collection.<br className="desktop-break"/> See which branches have a copy available.</h1>
         <form className="search-form" onSubmit={onSubmit} role="search"><label className="sr-only" htmlFor="book-search">Title, author, ISBN, record ID, or catalog link</label><svg className="search-icon" width="23" height="23" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.6"/><path d="m16 16 5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg><input id="book-search" type="search" value={input} onChange={event => setInput(event.target.value)} placeholder="Title, author, ISBN, record ID, or catalog link" autoComplete="off" required/><button className="search-button" type="submit" disabled={!input.trim()}>Find a book <Arrow/></button></form>
         <div className="examples"><span>Try a search</span>{examples.map(example => <button key={example.label} onClick={() => void search(example.query)}>{example.label}<span aria-hidden="true">↗</span></button>)}</div>
       </section>
@@ -251,7 +243,7 @@ export function App() {
           <div className="section-heading"><div><span className="eyebrow">THE COLLECTION</span><h2>Search results<span className="result-count">{books.length > 0 ? books.length : ''}</span></h2></div><span className="physical-label"><BookIcon small/>Physical books</span></div>
           {isSearching ? <div className="loading-state" role="status"><span className="spinner"/>Searching the library catalog…</div> : <>
             {searchError && <ErrorMessage message={searchError} retry={() => void search(failedSearch.current.query, failedSearch.current.startRecord)}/>}
-            {books.length > 0 && <><p className="result-summary">For <strong>{query.length > 90 ? `${query.slice(0, 90)}…` : query}</strong>{total > 0 && <span>{total.toLocaleString()} catalog matches across all formats</span>}</p><div className="book-list">{books.map(book => <button key={book.recordId} className={`book-result${selectedId === book.recordId ? ' selected' : ''}`} onClick={() => openBook(book)} aria-pressed={selectedId === book.recordId}><Cover book={book}/><span className="book-result-copy"><span className="book-format">BOOK</span><strong>{book.title}</strong><span className="book-author">{book.authors.join(', ') || 'Author not listed'}</span><span className="book-action">Check branches <Arrow/></span></span>{selectedId === book.recordId && <span className="selection-mark" aria-label="Selected">✓</span>}</button>)}</div></>}
+            {books.length > 0 && <><p className="result-summary">For <strong>{query.length > 90 ? `${query.slice(0, 90)}…` : query}</strong>{total > 0 && <span>{total.toLocaleString()} catalog matches across all formats</span>}</p><div className="book-list">{books.map(book => <button key={book.recordId} className={`book-result${selectedId === book.recordId ? ' selected' : ''}`} onClick={() => openBook(book)} aria-pressed={selectedId === book.recordId}><BookCover book={book}/><span className="book-result-copy"><span className="book-format">BOOK</span><strong>{book.title}</strong><span className="book-author">{book.authors.join(', ') || 'Author not listed'}</span><span className="book-action">Check branches <Arrow/></span></span>{selectedId === book.recordId && <span className="selection-mark" aria-label="Selected">✓</span>}</button>)}</div></>}
             {!searchError && books.length === 0 && !selectedId && <div className="empty-state"><BookIcon/><h3>{nextStartRecord ? 'Keep exploring the catalog.' : 'No physical books found.'}</h3><p>{nextStartRecord ? 'No physical books appeared on this page. Later catalog results may include the book you’re looking for.' : 'Try a shorter title, an author’s name, or an ISBN. You can also paste a catalog record link.'}</p></div>}
             {nextStartRecord != null && <div className="pagination"><button className="secondary-button" disabled={isLoadingMore} onClick={() => void search(query, nextStartRecord)}>{isLoadingMore ? <><span className="spinner"/>Loading more…</> : <>Load more books <span aria-hidden="true">↓</span></>}</button><p>Catalog results can include other formats.<br/>Only physical books appear here.</p></div>}
           </>}
@@ -260,7 +252,7 @@ export function App() {
         <aside ref={detailPanel} className="detail-panel" aria-label="Selected book availability" aria-busy={isChecking}>
           {!selectedId ? <div className="detail-placeholder"><div className="placeholder-books" aria-hidden="true"><span/><span/><span/></div><span className="eyebrow">FROM PAGE TO PLACE</span><h2>Find your copy.</h2><p>Choose a book to see its availability<br/>across the parish.</p></div> : <>
             <div className="detail-heading"><span className="eyebrow">ON THE SHELF</span>{selectedBook && <span className="physical-label">Physical book</span>}</div>
-            {selectedBook && <><div className="selected-book"><Cover book={selectedBook} large/><div><h2>{selectedBook.title}</h2><p className="detail-authors">{selectedBook.authors.join(', ') || 'Author not listed'}</p><a className="catalog-link" href={selectedBook.catalogUrl} target="_blank" rel="noopener noreferrer">View in library catalog <Arrow external/></a></div></div><dl className="book-metadata">{selectedBook.isbns.length > 0 && <div><dt>ISBN</dt><dd>{selectedBook.isbns.join(' · ')}</dd></div>}<div><dt>Record</dt><dd>{selectedBook.recordId}</dd></div></dl></>}
+            {selectedBook && <><div className="selected-book"><BookCover book={selectedBook} large/><div><h2>{selectedBook.title}</h2><p className="detail-authors">{selectedBook.authors.join(', ') || 'Author not listed'}</p><a className="catalog-link" href={selectedBook.catalogUrl} target="_blank" rel="noopener noreferrer">View in library catalog <Arrow external/></a></div></div><dl className="book-metadata">{selectedBook.isbns.length > 0 && <div><dt>ISBN</dt><dd>{selectedBook.isbns.join(' · ')}</dd></div>}<div><dt>Record</dt><dd>{selectedBook.recordId}</dd></div></dl></>}
             {availability && selectedBook && <SaveBookControl key={`${account.user?._id ?? 'signed-out'}:${selectedId}`} recordId={selectedId} onOpenLists={showLists}/>}
             {isChecking && <div className="loading-state detail-loading" role="status"><span className="spinner"/>Checking branch availability…</div>}
             {detailError && <ErrorMessage message={detailError} retry={() => void selectBook(selectedId, selectedBook)}/>}
@@ -270,6 +262,6 @@ export function App() {
       </section>}
       </>}
     </main>
-    <footer className="site-footer"><span><BookIcon small/>Made for the next chapter.</span><p>Live information from the EBRPL catalog.</p><a href="https://www.ebrpl.com/" target="_blank" rel="noopener noreferrer">Visit EBRPL <Arrow external/></a></footer>
+    <footer className="site-footer"><p>Live information from the EBRPL catalog.</p><a href="https://www.ebrpl.com/" target="_blank" rel="noopener noreferrer">Visit EBRPL <Arrow external/></a></footer>
   </div>;
 }
