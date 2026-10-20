@@ -3,23 +3,35 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=24"
   },
   "type": "module",
   "exports": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "catalog": "tsx src/cli.ts",
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.test.json && tsc -p tsconfig.core.json",
+    "dev": "concurrently --kill-others -n api,web npm:dev:api npm:dev:web",
+    "dev:api": "tsx watch server/index.ts",
+    "dev:web": "vite",
+    "build": "npm run typecheck && tsc -p tsconfig.json && tsc -p tsconfig.server.json && vite build",
+    "start": "node dist/api/server/index.js",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.test.json && tsc -p tsconfig.core.json && tsc -p tsconfig.web.json && tsc -p tsconfig.tools.json",
     "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
-    "@rgrove/parse-xml": "^5.0.0"
+    "@rgrove/parse-xml": "^5.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
-    "@types/node": "^26.6.5",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.6",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4"
   }
 }

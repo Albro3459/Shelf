@@ -1,4 +1,6 @@
-import { CatalogError, DEFAULT_BRANCHES, LANDING_URL, REQUEST_URL } from './model.js';
+import { CatalogError, CatalogRecordError, DEFAULT_BRANCHES, DIRECTORY_URL, LANDING_URL, REQUEST_URL } from './model.js';
+import type { Branch } from './api-model.js';
+import { parseDirectory } from './directory.js';
 import type { EbrplClient, EbrplClientOptions, SearchOptions } from './model.js';
 import { parseBook, parseBranches, parseResponse } from './xml.js';
 
@@ -32,6 +34,8 @@ export function createEbrplClient(options: EbrplClientOptions = {}): EbrplClient
   const timeoutMs = positiveInteger(options.timeoutMs ?? 20000, 'timeoutMs', 120000);
   const userAgent = options.userAgent ?? 'LibraryAvailabilityCatalog/0.1';
   if (!userAgent.trim() || /[\r\n]/.test(userAgent)) throw new CatalogError('Invalid User-Agent');
+  let directory: { branches: Branch[]; expiresAt: number } | undefined;
+  let directoryRequest: Promise<Branch[]> | undefined;
 
   async function request(url: string, init: RequestInit, cookies: Map<string, string>): Promise<string> {
     const controller = new AbortController();
@@ -92,6 +96,20 @@ export function createEbrplClient(options: EbrplClientOptions = {}): EbrplClient
   }
 
   return {
+    async getBranches() {
+      if (directory && Date.now() < directory.expiresAt) return directory.branches.map(branch => ({ ...branch }));
+      if (!directoryRequest) {
+        directoryRequest = (async () => {
+          const session = await initialize();
+          const text = await request(DIRECTORY_URL, { method: 'GET', headers: { Referer: LANDING_URL } }, session.cookies);
+          const branches = parseDirectory(text);
+          directory = { branches, expiresAt: Date.now() + 3600000 };
+          return branches;
+        })();
+      }
+      try { return (await directoryRequest).map(branch => ({ ...branch })); }
+      finally { directoryRequest = undefined; }
+    },
     async searchBooks(query: string, searchOptions: SearchOptions = {}) {
       const normalizedQuery = query.trim();
       if (!normalizedQuery || normalizedQuery.length > 1000) throw new CatalogError('Search requires 1 to 1000 characters');
@@ -118,12 +136,13 @@ export function createEbrplClient(options: EbrplClientOptions = {}): EbrplClient
         ExportByTemplate: 'Full', LinkToWord: '1', Versions: '1', SummaryHoldings: selectedBranches.join(','),
       });
       const document = response.documents[0];
+      if (response.total === 0) throw new CatalogRecordError('No catalog record was found for this ID', 'not-found');
       if (response.total !== 1 || response.documents.length !== 1 || !document) {
         throw new CatalogError('Catalog lookup did not return exactly one record');
       }
       const book = parseBook(document);
       if (book.recordId !== recordId) throw new CatalogError('Catalog returned a different record ID');
-      if (book.isPhysicalBook !== true) throw new CatalogError('Catalog record is not a confirmed physical book');
+      if (book.isPhysicalBook !== true) throw new CatalogRecordError('This catalog record is not a confirmed physical book', 'not-physical');
       return { book, branches: parseBranches(document, selectedBranches), checkedAt: new Date().toISOString() };
     },
   };

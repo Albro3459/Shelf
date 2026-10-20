@@ -101,7 +101,14 @@ export function parseBook(document: XmlElement): Book {
   const ebook = field(document, 'Ebook');
   const material = first('BriefMaterial', 'FullMaterial');
   const isDigital = ebook === '1' || materialType === 'DIGR' || /(?:ebook|eaudio|overdrive)/i.test(material);
-  const isBookMaterial = ['FICA', 'NONFICA', 'NONFICT', 'NONFICJ'].includes(materialType ?? '') || /(?:^|\/)book\.svg(?:['"?\s>]|$)/i.test(material);
+  // Book codes follow the catalog's Service.Search.cls publication-type wordings
+  const isBookMaterial = [
+    'FICA', 'FICJ', 'FICT', 'NONFICA', 'NONFICJ', 'NONFICT', 'BIOA', 'BIOJ', 'BIOT',
+    'BOARDBK', 'BRAILLE', 'PICTUREBK', 'GRAPHICBKA', 'GRAPHICBKJ', 'GRAPHICBKT', 'GRAPHICNFA', 'GRAPHICNFT',
+    'LARGPRINTA', 'LARGPRINTJ', 'LARGPRINTT', 'LABIO', 'LAFICA', 'LAFICT', 'LANONFICA', 'LANONFICT',
+    'LFICA', 'LFICJ', 'LFICT', 'LNFICA', 'LNFICJ', 'LNFICT', 'LAREFT', 'LREFA', 'LREFJ', 'LREFT',
+    'REFA', 'REFJ', 'REFT', 'PRIMER', 'READER', 'STEPUP',
+  ].includes(materialType ?? '') || /(?:^|\/)book\.svg(?:['"?\s>]|$)/i.test(material);
   const isPhysicalBook = isDigital || (documentType !== null && documentType !== 'Book') ? false :
     ebook === '0' && documentType === 'Book' && isBookMaterial ? true : null;
   return { recordId, title, authors, isbns: [...isbns], documentType, materialType, isPhysicalBook, catalogUrl: `${LANDING_URL}#recordId=${recordId}` };

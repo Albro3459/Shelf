@@ -1,3 +1,5 @@
+import type { Branch } from './api-model.js';
+
 export type Book = {
   recordId: string;
   title: string;
@@ -30,6 +32,7 @@ export type EbrplClientOptions = {
   userAgent?: string;
 };
 export type EbrplClient = {
+  getBranches(): Promise<Branch[]>;
   searchBooks(query: string, options?: SearchOptions): Promise<SearchResult>;
   getAvailability(recordId: string, branchCodes?: readonly string[]): Promise<AvailabilityResult>;
 };
@@ -37,10 +40,18 @@ export type EbrplClient = {
 export const DEFAULT_BRANCHES: readonly string[] = ['EBRPL/JCR', 'EBRPL/SOU', 'EBRPL/BBR'];
 export const LANDING_URL = 'https://catalog.ebrpl.com/iguana/www.main.cls?surl=search&p=*';
 export const REQUEST_URL = 'https://catalog.ebrpl.com/iguana/Proxy.SearchRequest.cls';
+export const DIRECTORY_URL = 'https://catalog.ebrpl.com/iguana/Service.Search.cls?language=eng';
 
 export class CatalogError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'CatalogError';
+  }
+}
+
+export class CatalogRecordError extends CatalogError {
+  constructor(message: string, readonly reason: 'not-found' | 'not-physical') {
+    super(message);
+    this.name = 'CatalogRecordError';
   }
 }
