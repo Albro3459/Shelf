@@ -2,7 +2,7 @@ node_modules/
 dist/
 .env*
 !.env.example
-secrets/
+!.env.convex.example
 .convex/
 !package-lock.json
 TODO/
