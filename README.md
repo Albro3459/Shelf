@@ -36,13 +36,13 @@ Shelf uses hash navigation (`#record=...` and `#view=lists`), so book and list l
 npm run deploy
 ```
 
-The predeploy script bumps the patch version in `package.json` and `package-lock.json` without creating a Git tag, then builds against https://good-snake-3.convex.cloud. The deploy script publishes only `dist/web` to the remote gh-pages branch. It preserves the custom domain through `web/public/CNAME` and disables Jekyll. It does not commit or push the source branch. Commit the version files when you save the release.
+The predeploy script bumps the patch version in `package.json` and `package-lock.json` without creating a Git tag, then builds against the production backend at https://mellow-ibex-872.convex.cloud. The deploy script publishes only `dist/web` to the remote gh-pages branch. It preserves the custom domain through `web/public/CNAME` and disables Jekyll. It does not commit or push the source branch. Publishing requires explicit approval to push the `gh-pages` branch. Commit the version files when you save the release.
 
 To check the release build without publishing or changing its version, run `npm run build:pages`.
 
 GitHub Pages must publish from the gh-pages branch at `/`. The Cloudflare record is a CNAME from shelf.gocloudlaunch.com to albro3459.github.io. Leave it DNS-only until GitHub verifies the domain and issues its HTTPS certificate, then enable HTTPS enforcement. Cloudflare proxying can be enabled after that. Keep TLS certificate validation enabled and leave all other records unchanged.
 
-Set `SITE_URL` on the `good-snake-3` Convex deployment to https://shelf.gocloudlaunch.com for auth redirects and notification links. Register this frontend origin in the Google OAuth client. The existing Google callback stays https://good-snake-3.convex.site/api/auth/callback/google. The Pages release publishes only the frontend and does not deploy Convex functions.
+Set `SITE_URL` on the production deployment, `mellow-ibex-872`, to https://shelf.gocloudlaunch.com for auth redirects and notification links. Register this frontend origin and https://mellow-ibex-872.convex.site/api/auth/callback/google in the Google OAuth client. Each Convex deployment needs its own backend environment variables and auth signing keys. Deploy production functions with `npm run convex -- deploy --typecheck enable`. The Pages release publishes only the frontend and does not deploy Convex functions.
 
 ## Convex development
 
