@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Shelf icon</title>
+  <desc id="desc">An open forest-green book with cream pages and a green bookmark on a square khaki background.</desc>
+  <defs>
+    <linearGradient id="background" x1="8" y1="4" x2="57" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E6DABD"/>
+      <stop offset="0.5" stop-color="#D2C49E"/>
+      <stop offset="1" stop-color="#B8AD86"/>
+    </linearGradient>
+    <radialGradient id="light" cx="0" cy="0" r="1" gradientTransform="translate(14 8) rotate(45) scale(53)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFCED" stop-opacity="0.36"/>
+      <stop offset="1" stop-color="#FFFCED" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cover" x1="13" y1="17" x2="50" y2="49" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#365D46"/>
+      <stop offset="1" stop-color="#173E37"/>
+    </linearGradient>
+    <linearGradient id="left-page" x1="13" y1="21" x2="30" y2="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFAE9"/>
+      <stop offset="1" stop-color="#E5D9B9"/>
+    </linearGradient>
+    <linearGradient id="right-page" x1="36" y1="25" x2="52" y2="38" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F0E6CC"/>
+      <stop offset="1" stop-color="#FFFAE9"/>
+    </linearGradient>
+  </defs>
+
+  <path fill="url(#background)" d="M0 0h64v64H0z"/>
+  <path fill="url(#light)" d="M0 0h64v64H0z"/>
+
+  <path fill="#3D422C" fill-opacity="0.16" transform="translate(0 2)" d="m9 16 16 3 7 4 7-4 16-3v29l-16 3-7 4-7-4-16-3z"/>
+
+  <g>
+    <path fill="url(#cover)" d="m9 16 16 3 7 4 7-4 16-3v29l-16 3-7 4-7-4-16-3z"/>
+    <path fill="#15382E" fill-opacity="0.4" d="m32 23 2-1v27l-2 3-2-3V22z"/>
+    <path fill="#B5B394" d="m12 39 12 2 6 3v3l-6-3-12-2zm22 5 6-3 12-2v3l-12 2-6 3z"/>
+    <path fill="url(#left-page)" d="m12 18 12 2 6 4v20l-6-3-12-2z"/>
+    <path fill="url(#right-page)" d="m34 24 6-4 12-2v21l-12 2-6 3z"/>
+    <path fill="#8B9472" fill-opacity="0.55" d="m16 25 8 1.5v1.5L16 26.5zm0 5 8 1.5V33l-8-1.5z"/>
+    <path fill="#64815A" d="m43 19.5 5-.83v13.5l-2.5-1.7-2.5 2.53z"/>
+    <path fill="#A6B58C" d="m43 19.5 1-.17V31.6l-1 1.4z"/>
+  </g>
+</svg>

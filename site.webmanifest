@@ -1,0 +1,24 @@
+{
+  "name": "Shelf",
+  "short_name": "Shelf",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "web-app-manifest-192x192.png?v=20261020",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "web-app-manifest-512x512.png?v=20261020",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#173e37",
+  "background_color": "#f8f6ef",
+  "display": "standalone"
+}

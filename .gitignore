@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env*
+!.env.example
+!.env.convex.example
+.convex/
+!package-lock.json
+TODO/
+AGENTS.md
