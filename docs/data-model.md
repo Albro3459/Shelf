@@ -49,7 +49,7 @@ Use Convex Auth with Google sign-in. Its `users._id`, returned by `getAuthUserId
 
 `ShelfUserDoc` includes selected profile fields and app additions. Preserve the complete managed auth schema when extending it. Missing or pending `accessStatus` denies private account features. Treat a missing email preference as disabled.
 
-Google sign-in requires a verified Google email. New users start with pending access and email notifications disabled. Repeat sign-ins preserve those fields. Pending users can sign in and view their own basic account identity. All list and subscription functions require active access. Disabled users cannot create new sessions or retrieve their account profile. `users.setAccess` is an internal mutation for account approval through the dashboard or authenticated CLI. There is no client-facing access approval function.
+Google sign-in requires a verified Google email. New users start with active access and email notifications disabled. Existing pending users become active at their next sign-in. Repeat sign-ins preserve disabled access and notification preferences. All list and subscription functions require active access. Disabled users cannot create new sessions or retrieve their account profile. `users.setAccess` is an internal mutation for managing access through the dashboard or authenticated CLI.
 
 A user can own multiple named lists. Each list contains a given book once. Books are shared across users, while lists and alert choices are private. Saving a book does not enable an alert by itself. Removing a list entry does not disable an independently selected subscription.
 

@@ -1,6 +1,7 @@
 {
   "name": "ebrpl-catalog-client",
-  "version": "0.1.0",
+  "homepage": "https://shelf.gocloudlaunch.com",
+  "version": "0.1.1",
   "private": true,
   "engines": {
     "node": ">=24"
@@ -15,6 +16,9 @@
     "dev": "convex dev --typecheck enable --start \"npm run dev:web\"",
     "dev:web": "vite",
     "build": "npm run typecheck && tsc -p tsconfig.json && vite build",
+    "build:pages": "VITE_CONVEX_URL=https://good-snake-3.convex.cloud npm run build",
+    "predeploy": "npm version patch --no-git-tag-version && npm run build:pages",
+    "deploy": "gh-pages -d dist/web --branch gh-pages --nojekyll",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.test.json && tsc -p tsconfig.core.json && tsc -p tsconfig.web.json && tsc -p tsconfig.tools.json && tsc -p convex/tsconfig.json",
     "test": "tsx --test test/*.test.ts"
@@ -33,6 +37,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "gh-pages": "^6.3.0",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.4"

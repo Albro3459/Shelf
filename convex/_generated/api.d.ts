@@ -15,6 +15,7 @@ import type * as books from "../books.js";
 import type * as catalog from "../catalog.js";
 import type * as crons from "../crons.js";
 import type * as email from "../email.js";
+import type * as emailTemplate from "../emailTemplate.js";
 import type * as http from "../http.js";
 import type * as listModel from "../listModel.js";
 import type * as lists from "../lists.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   catalog: typeof catalog;
   crons: typeof crons;
   email: typeof email;
+  emailTemplate: typeof emailTemplate;
   http: typeof http;
   listModel: typeof listModel;
   lists: typeof lists;

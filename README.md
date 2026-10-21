@@ -15,7 +15,7 @@ Create the local deployment once. On subsequent runs, use `npm run dev`. It star
 
 Enter a title, author, ISBN, EBRPL record ID (`1.1906252` or `1906252`), or a complete HTTPS catalog record link. Search results show confirmed physical books. Selecting one checks all public physical branches returned by the catalog's live directory. Missing holdings stay unknown and are not treated as unavailable.
 
-Sign in with an approved account to create book lists. Choose a list on a book's detail panel to save it, then open **My lists** to revisit its availability, rename lists, or remove books. Saved lists persist in Convex and update across sessions. Saving a book does not enable notifications.
+Sign in with Google to create book lists. Choose a list on a book's detail panel to save it, then open **My lists** to revisit its availability, rename lists, or remove books. Saved lists persist in Convex and update across sessions. Saving a book does not enable notifications.
 
 The API filters one upstream catalog page at a time. A page containing only digital items can have no physical results and still have a next page. Load more to continue. Catalog totals include all formats.
 
@@ -28,9 +28,25 @@ npm run preview
 
 The preview serves [port 4173](http://localhost:4173). The static frontend build is in `dist/web`, and the catalog library keeps its `dist/index.js` export. `VITE_CONVEX_URL` selects the frontend's backend at build time. Keep `npm run convex -- dev` running in another terminal when previewing against a local backend. For cloud frontend builds, select the intended cloud backend or set its URL before building.
 
+## GitHub Pages
+
+Shelf uses hash navigation (`#record=...` and `#view=lists`), so book and list links work on GitHub Pages without server rewrites. The configured address is https://shelf.gocloudlaunch.com.
+
+```sh
+npm run deploy
+```
+
+The predeploy script bumps the patch version in `package.json` and `package-lock.json` without creating a Git tag, then builds against https://good-snake-3.convex.cloud. The deploy script publishes only `dist/web` to the remote gh-pages branch. It preserves the custom domain through `web/public/CNAME` and disables Jekyll. It does not commit or push the source branch. Commit the version files when you save the release.
+
+To check the release build without publishing or changing its version, run `npm run build:pages`.
+
+GitHub Pages must publish from the gh-pages branch at `/`. The Cloudflare record is a CNAME from shelf.gocloudlaunch.com to albro3459.github.io. Leave it DNS-only until GitHub verifies the domain and issues its HTTPS certificate, then enable HTTPS enforcement. Cloudflare proxying can be enabled after that. Keep TLS certificate validation enabled and leave all other records unchanged.
+
+Set `SITE_URL` on the `good-snake-3` Convex deployment to https://shelf.gocloudlaunch.com for auth redirects and notification links. Register this frontend origin in the Google OAuth client. The existing Google callback stays https://good-snake-3.convex.site/api/auth/callback/google. The Pages release publishes only the frontend and does not deploy Convex functions.
+
 ## Convex development
 
-The same functions run in local and cloud Convex deployments. Each deployment has separate data and environment variables. Local development requires the backend process to stay running. Catalog requests still reach the live library catalog. The POC does not save observations or send notifications yet.
+The same functions run in local and cloud Convex deployments. Each deployment has separate data and environment variables. Local development requires the backend process to stay running. Catalog requests still reach the live library catalog. Saved books, lists, branch observations, and notification history persist in the selected backend.
 
 The Convex CLI is included in the project dependencies. To connect a machine to an existing cloud project:
 
@@ -85,9 +101,9 @@ npm run dev:web
 
 The auth initializer creates `JWT_PRIVATE_KEY` and `JWKS` on the selected backend and preserves existing keys unless you choose to replace them. Keep a local backend running in another terminal when configuring it. Each deployment needs its own environment configuration.
 
-Open `http://localhost:5173` for this configuration. `SITE_URL` must match the frontend address used for sign-in. Set it to the final HTTPS frontend URL when deploying. Sign-in preserves the current path and book hash, and Convex Auth exchanges and removes the callback's query code. Google credentials and signing keys stay on the backend.
+Open `http://localhost:5173` for this configuration. `SITE_URL` must match the frontend address used for sign-in. Set it to the final HTTPS frontend URL when deploying. Sign-in preserves the current path and book hash, and Convex Auth exchanges and removes the callback's query code. Google credentials and signing keys stay on the backend. The Google sign-in HTTP route uses secure, HttpOnly, unpartitioned `SameSite=Lax` cookies so the PKCE verifier survives the top-level redirect back from Google.
 
-Catalog search remains public. `users.current` returns only the authenticated user's basic profile and access status, using Convex Auth's canonical `users._id`. New accounts have pending access and notifications disabled. Repeat sign-ins preserve access and preferences. Lists require active access, as will future notification features. An administrator can approve an account with the internal `users.setAccess({ userId, accessStatus: 'active' })` mutation through the dashboard or CLI. See the [data model](docs/data-model.md).
+Catalog search remains public. `users.current` returns only the authenticated user's basic profile and access status, using Convex Auth's canonical `users._id`. New accounts have active access and notifications disabled. Existing pending accounts become active at their next sign-in. Repeat sign-ins preserve disabled access and notification preferences. Lists and notifications require active access. Administrators can change access with the internal `users.setAccess` mutation through the dashboard or CLI. See the [data model](docs/data-model.md).
 
 Setup follows the [Convex Auth guide](https://labs.convex.dev/auth/setup) and [Google provider configuration](https://labs.convex.dev/auth/config/oauth/google).
 
@@ -143,4 +159,4 @@ npm test
 
 The core and Convex typechecks exclude Node ambient types. Separate configurations check the frontend, existing tests, and Vite setup. Existing tests use recorded, sanitized XML and mocked HTTP responses for catalog parsing, input resolution, directory discovery, physical pagination, and all-branch joins. See [fixture notes](test/fixtures/README.md) for the observed protocol and its limits.
 
-Frontend hosting, edition discovery, scheduled checks, and email notifications remain future work.
+Automatic edition discovery remains future work.

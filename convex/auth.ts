@@ -17,7 +17,12 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   callbacks: {
     async afterUserCreatedOrUpdated(ctx, { userId, existingUserId }) {
       if (existingUserId === null) {
-        await ctx.db.patch(userId, { accessStatus: 'pending', emailNotificationsEnabled: false });
+        await ctx.db.patch(userId, { accessStatus: 'active', emailNotificationsEnabled: false });
+        return;
+      }
+      const user = await ctx.db.get(userId);
+      if (user && (!user.accessStatus || user.accessStatus === 'pending')) {
+        await ctx.db.patch(userId, { accessStatus: 'active' });
       }
     },
     async beforeSessionCreation(ctx, { userId }) {
